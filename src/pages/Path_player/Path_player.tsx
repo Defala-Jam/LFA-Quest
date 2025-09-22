@@ -25,7 +25,7 @@ const Path_player: React.FC = () => {
           <button className="back-button">←</button>
           <div className="header-info">
             <h2>Section 1, Chapter 1</h2>
-            <p>Sorting Algorithms Fundamentals</p>
+            <p>Fundamentos teóricos da computação</p>
           </div>
         </div>
 

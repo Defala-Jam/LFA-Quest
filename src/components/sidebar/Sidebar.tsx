@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onNavigate }) => {
   const navigate = useNavigate()
 
   const navItems = [
-    { id: "journey", label: "Journey", icon: "📖", path: "/" },
+    { id: "journey", label: "Journey", icon: "📖", path: "/path" },
     { id: "leaderboard", label: "Leaderboard", icon: "🏆", path: "/leaderboard" },
     { id: "store", label: "Store", icon: "🏪", path: "/store" },
     { id: "profile", label: "Perfil", icon: "👤", path: "/profile" },
