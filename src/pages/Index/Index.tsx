@@ -130,23 +130,23 @@ const Index: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stats-container">
-          <div className="stat-item">
-            <div className="stat-number">10K+</div>
-            <div className="stat-label">Students Learning</div>
+      <section className="index-stats-section">
+        <div className="index-stats-container">
+          <div className="index-stat-item">
+            <div className="index-stat-number">10K+</div>
+            <div className="index-stat-label">Students Learning</div>
           </div>
-          <div className="stat-item">
-            <div className="stat-number">50+</div>
-            <div className="stat-label">Interactive Lessons</div>
+          <div className="index-stat-item">
+            <div className="index-stat-number">50+</div>
+            <div className="index-stat-label">Interactive Lessons</div>
           </div>
-          <div className="stat-item">
-            <div className="stat-number">95%</div>
-            <div className="stat-label">Success Rate</div>
+          <div className="index-stat-item">
+            <div className="index-stat-number">95%</div>
+            <div className="index-stat-label">Success Rate</div>
           </div>
-          <div className="stat-item">
-            <div className="stat-number">4.9★</div>
-            <div className="stat-label">Student Rating</div>
+          <div className="index-stat-item">
+            <div className="index-stat-number">4.9★</div>
+            <div className="index-stat-label">Student Rating</div>
           </div>
         </div>
       </section>

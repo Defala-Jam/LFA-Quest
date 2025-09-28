@@ -87,10 +87,168 @@ button:focus-visible {
 /* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #242424;
+    --color-background: #1a2332;
     --color-foreground: rgba(255, 255, 255, 0.87);
-    --color-card: #1e1e1e;
-    --color-border: #3b3b3b;
+    --color-card: #1a2332;
+    --color-border: #30405b;
     --color-muted-foreground: #9ca3af;
   }
+} 
+
+
+/* Right Sidebar Styles */
+.right-sidebar {
+  width: 320px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stats {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.stat-item.green {
+  background: #22c55e;
+}
+
+.stat-item.orange {
+  background: #f97316;
+}
+
+.stat-item.purple {
+  background: #a855f7;
+}
+
+.stat-number {
+  font-size: 18px;
+}
+
+.widget {
+  background: #2a3441;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #3a4553;
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.widget-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.view-button {
+  background: none;
+  border: none;
+  color: #4285f4;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.view-button:hover {
+  text-decoration: underline;
+}
+
+.leaderboard-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #9ca3af;
+}
+
+.leaderboard-message p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lock-icon {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.goal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #3a4553;
+}
+
+.goal-item:last-child {
+  border-bottom: none;
+}
+
+.goal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.goal-text span:first-child {
+  font-size: 14px;
+  color: #e5e7eb;
+}
+
+.goal-progress {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.trophy-icon {
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .right-sidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .right-sidebar {
+    width: 100%;
+    order: -1;
+  }
+}
+
+.action-btn {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.action-btn:hover {
+  background: #059669;
 }

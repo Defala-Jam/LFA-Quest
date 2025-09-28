@@ -3,7 +3,7 @@ import Path_player from './pages/Path_player/Path_player.tsx';
 import Leaderboard from './pages/Leaderboard/Leaderboard.tsx';
 import Perfil from './pages/Perfil/Perfil.tsx';
 import Statistics from './pages/Statistics/Statistics.tsx';
-import Store from './pages/Store/Store.tsx';  // <-- importa a página Store
+import Store from './pages/Store/Store.tsx'; 
 import Index from './pages/Index/Index.tsx';
 import "./Global.css"
 

@@ -12,7 +12,7 @@ const Leaderboard: React.FC = () => {
     setActiveNavItem(item)
   }
 
-  // Exemplo de ranking estático
+  // Ranking estático
   const ranking = [
     { id: 1, name: "Alice", xp: 120, avatar: "👩" },
     { id: 2, name: "Bruno", xp: 95, avatar: "🧑" },
@@ -22,11 +22,12 @@ const Leaderboard: React.FC = () => {
   ]
 
   return (
-    <div className="app-container">
+    <div className="leaderboard-layout">
+      {/* Sidebar esquerda */}
       <Sidebar activeItem={activeNavItem} onNavigate={navigator} />
 
       {/* Conteúdo principal */}
-      <div className="main-content">
+      <div className="leaderboard-main">
         <div className="leaderboard-header">
           <h2>Leaderboard</h2>
           <p>Veja sua posição no ranking semanal!</p>
@@ -47,17 +48,59 @@ const Leaderboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Sidebar direita */}
+      {/* Right Sidebar */}
       <div className="right-sidebar">
-        {/* Progresso da Semana */}
+        {/* Stats */}
+        <div className="stats">
+          <div className="stat-item green">
+            <span className="stat-icon">🔥</span>
+            <span className="stat-number">0</span>
+          </div>
+          <div className="stat-item orange">
+            <span className="stat-icon">💎</span>
+            <span className="stat-number">9</span>
+          </div>
+          <div className="stat-item purple">
+            <span className="stat-icon">⚡</span>
+            <span className="stat-number">5</span>
+          </div>
+        </div>
+
+        {/* Leaderboard */}
         <div className="widget">
           <div className="widget-header">
-            <h3>Progresso da Semana</h3>
+            <h3>Leaderboard</h3>
+            <button className="view-button">View</button>
           </div>
           <div className="widget-content">
-            <p>📘 Lições: 3/7</p>
-            <p>⚡ Desafios: 1/3</p>
-            <p>🔥 Dias Seguidos: 4</p>
+            <div className="leaderboard-message">
+              <span className="lock-icon">🔒</span>
+              <p>Start learning and earning XP to join this week's leaderboard!</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Goals */}
+        <div className="widget">
+          <div className="widget-header">
+            <h3>Daily Goals</h3>
+            <button className="view-button">View</button>
+          </div>
+          <div className="widget-content">
+            <div className="goal-item">
+              <div className="goal-text">
+                <span>Complete 5 lessons</span>
+                <span className="goal-progress">0/5</span>
+              </div>
+              <span className="trophy-icon">🏆</span>
+            </div>
+            <div className="goal-item">
+              <div className="goal-text">
+                <span>Solve 3 challenges on first try</span>
+                <span className="goal-progress">0/3</span>
+              </div>
+              <span className="trophy-icon">🏆</span>
+            </div>
           </div>
         </div>
       </div>
