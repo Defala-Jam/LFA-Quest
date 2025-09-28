@@ -151,7 +151,7 @@ const Statistics: React.FC = () => {
       </div>
 
       
-      {/* Right Sidebar */}
+            {/* Right Sidebar */}
       <div className="right-sidebar">
         {/* Stats */}
         <div className="stats">
@@ -178,7 +178,7 @@ const Statistics: React.FC = () => {
           <div className="widget-content">
             <div className="leaderboard-message">
               <span className="lock-icon">🔒</span>
-              <p>Start learning and earning XP to join this week's leaderboard!</p>
+              <p>Começe a aprender!! Começe seu Caminho e Ganhe um Lugar no Leaderboard</p>
             </div>
           </div>
         </div>
@@ -186,20 +186,20 @@ const Statistics: React.FC = () => {
         {/* Daily Goals */}
         <div className="widget">
           <div className="widget-header">
-            <h3>Daily Goals</h3>
-            <button className="view-button">View</button>
+            <h3>Missões Diárias</h3>
+            <button className="view-button">Revisão</button>
           </div>
           <div className="widget-content">
             <div className="goal-item">
               <div className="goal-text">
-                <span>Complete 5 lessons</span>
+                <span>Complete 5 missões</span>
                 <span className="goal-progress">0/5</span>
               </div>
               <span className="trophy-icon">🏆</span>
             </div>
             <div className="goal-item">
               <div className="goal-text">
-                <span>Solve 3 challenges on first try</span>
+                <span>Resolva 3 questões na primeira tentativa</span>
                 <span className="goal-progress">0/3</span>
               </div>
               <span className="trophy-icon">🏆</span>

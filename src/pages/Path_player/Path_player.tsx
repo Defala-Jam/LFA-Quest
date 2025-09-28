@@ -31,7 +31,7 @@ const Path_player: React.FC = () => {
 
         {/* Learning Path */}
         <div className="learning-path">
-          <div className="path-title">Sorting Algorithms Fundamentals</div>
+          <div className="path-title">autômatos finitos Determinísticos</div>
 
           <div className="path-nodes">
             <div className="path-node completed">
@@ -83,30 +83,30 @@ const Path_player: React.FC = () => {
             <h3>Quick Actions</h3>
           </div>
           <div className="widget-content">
-            <button className="action-btn">Practice Weak Areas</button>
-            <button className="action-btn">Review Mistakes</button>
-            <button className="action-btn">Take Quiz</button>
+            <button className="action-btn">Pratica Areas Facas</button>
+            <button className="action-btn">Rever erros</button>
+            <button className="action-btn">Quizz</button>
           </div>
         </div>
 
         {/* Recent Activity */}
         <div className="widget">
           <div className="widget-header">
-            <h3>Recent Activity</h3>
+            <h3>Atividades Recentes</h3>
           </div>
           <div className="widget-content">
             <div className="activity-list">
               <div className="activity-item">
                 <div className="activity-icon">✅</div>
                 <div className="activity-text">
-                  <div>Bubble Sort Quiz</div>
+                  <div>oque é um automato</div>
                   <div className="activity-time">2 hours ago</div>
                 </div>
               </div>
               <div className="activity-item">
                 <div className="activity-icon">📚</div>
                 <div className="activity-text">
-                  <div>Merge Sort Lesson</div>
+                  <div>Transição de Estado</div>
                   <div className="activity-time">1 day ago</div>
                 </div>
               </div>
