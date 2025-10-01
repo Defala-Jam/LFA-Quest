@@ -174,7 +174,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
-
+        
         {/* Daily Goals */}
         <div className="widget">
           <div className="widget-header">

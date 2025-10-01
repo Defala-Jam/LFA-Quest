@@ -22,7 +22,7 @@ interface Journey {
 
 const Statistics: React.FC = () => {
   const [activeNavItem, setActiveNavItem] = useState("more")
-  const [selectedJourney, setSelectedJourney] = useState("algorithms")
+  const [selectedJourney, setSelectedJourney] = useState("afd-intro")
 
   const navigator = (item: string) => {
     setActiveNavItem(item)
@@ -32,21 +32,31 @@ const Statistics: React.FC = () => {
 
   const journeys: Journey[] = [
     {
-      id: "algorithms",
-      name: "Sorting Algorithms",
+      id: "afd-intro",
+      name: "Introdução aos AFDs",
       progress: 75,
-      description: "Master fundamental sorting techniques",
+      description: "Conceitos básicos e definições de autômatos finitos",
     },
-    { id: "datastructures", name: "Data Structures", progress: 45, description: "Learn essential data organization" },
-    { id: "advanced", name: "Advanced Concepts", progress: 20, description: "Complex algorithmic patterns" },
+    {
+      id: "afd-construction",
+      name: "Construção de AFDs",
+      progress: 45,
+      description: "Métodos para construir autômatos determinísticos a partir de expressões regulares",
+    },
+    {
+      id: "afd-minimization",
+      name: "Minimização de AFDs",
+      progress: 20,
+      description: "Técnicas para simplificar autômatos mantendo a linguagem reconhecida",
+    },
   ]
 
   const tagStats: TagStats[] = [
-    { name: "Bubble Sort", averageTime: 12.5, successRate: 85, totalQuestions: 24, color: "#4f46e5" },
-    { name: "Merge Sort", averageTime: 18.2, successRate: 72, totalQuestions: 18, color: "#3b82f6" },
-    { name: "Insertion Sort", averageTime: 9.8, successRate: 91, totalQuestions: 32, color: "#10b981" },
-    { name: "Selection Sort", averageTime: 14.1, successRate: 78, totalQuestions: 21, color: "#f59e0b" },
-    { name: "Quick Sort", averageTime: 22.3, successRate: 65, totalQuestions: 15, color: "#ef4444" },
+    { name: "Definições e Estados", averageTime: 10.5, successRate: 85, totalQuestions: 24, color: "#4f46e5" },
+    { name: "Transições", averageTime: 12.2, successRate: 78, totalQuestions: 18, color: "#3b82f6" },
+    { name: "Linguagem Reconhecida", averageTime: 9.8, successRate: 91, totalQuestions: 32, color: "#10b981" },
+    { name: "Construção de AFD", averageTime: 14.1, successRate: 80, totalQuestions: 21, color: "#f59e0b" },
+    { name: "Minimização", averageTime: 18.3, successRate: 70, totalQuestions: 15, color: "#ef4444" },
   ]
 
   const currentJourney = journeys.find((j) => j.id === selectedJourney) || journeys[0]
@@ -57,13 +67,13 @@ const Statistics: React.FC = () => {
 
       <div className="statistics-main">
         <div className="statistics-header">
-          <h1>Learning Statistics</h1>
-          <p>Track your progress and performance across different topics</p>
+          <h1>Estatísticas de Aprendizagem</h1>
+          <p>Acompanhe seu progresso e desempenho em Autômatos Finitos Determinísticos (AFD)</p>
         </div>
 
         {/* Journey Selection */}
         <div className="journey-section">
-          <h2>Select Journey</h2>
+          <h2>Selecione a Jornada</h2>
           <div className="journey-cards">
             {journeys.map((journey) => (
               <div
@@ -88,30 +98,30 @@ const Statistics: React.FC = () => {
 
         {/* Current Journey Overview */}
         <div className="journey-overview">
-          <h2>Current Journey: {currentJourney.name}</h2>
+          <h2>Jornada Atual: {currentJourney.name}</h2>
           <div className="overview-stats">
             <div className="overview-card">
-              <div className="overview-value">75%</div>
-              <div className="overview-label">Overall Progress</div>
+              <div className="overview-value">{currentJourney.progress}%</div>
+              <div className="overview-label">Progresso Geral</div>
             </div>
             <div className="overview-card">
               <div className="overview-value">110</div>
-              <div className="overview-label">Total Questions</div>
+              <div className="overview-label">Total de Questões</div>
             </div>
             <div className="overview-card">
               <div className="overview-value">15.2s</div>
-              <div className="overview-label">Avg Response Time</div>
+              <div className="overview-label">Tempo Médio de Resposta</div>
             </div>
             <div className="overview-card">
               <div className="overview-value">78%</div>
-              <div className="overview-label">Success Rate</div>
+              <div className="overview-label">Taxa de Sucesso</div>
             </div>
           </div>
         </div>
 
         {/* Tag Statistics */}
         <div className="tags-section">
-          <h2>Performance by Topic</h2>
+          <h2>Desempenho por Tópico</h2>
           <div className="tags-grid">
             {tagStats.map((tag, index) => (
               <div key={index} className="tag-card">
@@ -122,15 +132,15 @@ const Statistics: React.FC = () => {
                 <div className="tag-stats">
                   <div className="stat-item">
                     <div className="stat-value">{tag.averageTime}s</div>
-                    <div className="stat-label">Avg Time</div>
+                    <div className="stat-label">Tempo Médio</div>
                   </div>
                   <div className="stat-item">
                     <div className="stat-value">{tag.successRate}%</div>
-                    <div className="stat-label">Success Rate</div>
+                    <div className="stat-label">Taxa de Sucesso</div>
                   </div>
                   <div className="stat-item">
                     <div className="stat-value">{tag.totalQuestions}</div>
-                    <div className="stat-label">Questions</div>
+                    <div className="stat-label">Questões</div>
                   </div>
                 </div>
                 <div className="tag-progress">
@@ -150,8 +160,7 @@ const Statistics: React.FC = () => {
         </div>
       </div>
 
-      
-            {/* Right Sidebar */}
+      {/* Right Sidebar */}
       <div className="right-sidebar">
         {/* Stats */}
         <div className="stats">
@@ -173,12 +182,12 @@ const Statistics: React.FC = () => {
         <div className="widget">
           <div className="widget-header">
             <h3>Leaderboard</h3>
-            <button className="view-button">View</button>
+            <button className="view-button">Ver</button>
           </div>
           <div className="widget-content">
             <div className="leaderboard-message">
               <span className="lock-icon">🔒</span>
-              <p>Começe a aprender!! Começe seu Caminho e Ganhe um Lugar no Leaderboard</p>
+              <p>Comece a estudar! Progrida nos conceitos e ganhe seu lugar no Ranking</p>
             </div>
           </div>
         </div>

@@ -29,8 +29,8 @@ const Leaderboard: React.FC = () => {
       {/* Conteúdo principal */}
       <div className="leaderboard-main">
         <div className="leaderboard-header">
-          <h2>Leaderboard</h2>
-          <p>Veja sua posição no ranking semanal!</p>
+          <h2>Leaderboard</h2> 
+          <p>Veja sua posição no ranking!</p>
         </div>
 
         <div className="leaderboard-list">

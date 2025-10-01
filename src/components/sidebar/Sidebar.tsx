@@ -13,18 +13,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onNavigate }) => {
   const navigate = useNavigate()
 
   const navItems = [
-    { id: "journey", label: "Journey", icon: "📖", path: "/path" },
+    { id: "journey", label: "Jornada", icon: "📖", path: "/path" },
     { id: "leaderboard", label: "Leaderboard", icon: "🏆", path: "/leaderboard" },
-    { id: "store", label: "Store", icon: "🏪", path: "/store" },
+    { id: "store", label: "Loja", icon: "🏪", path: "/store" },
     { id: "profile", label: "Perfil", icon: "👤", path: "/profile" },
-    { id: "more", label: "More", icon: "⋯", path: "/more" },
+    { id: "more", label: "Mais", icon: "⋯", path: "/more" },
   ]
 
   return (
     <div className="sidebar">
       <div className="logo">
         <div className="logo-icon">{"</>"}</div>
-        <span className="logo-text">CodePath</span>
+        <span className="logo-text">LFA Quest</span>
       </div>
 
       <nav className="nav-menu">
