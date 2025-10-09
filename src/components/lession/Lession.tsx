@@ -20,6 +20,7 @@ interface LessonProps {
 const Lesson: React.FC<LessonProps> = ({ lessonData, onComplete, onExit }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [showExitModal, setShowExitModal] = useState(false)
 
   const handleAnswerSelect = (index: number) => {
     if (!isSubmitted) {
@@ -39,6 +40,15 @@ const Lesson: React.FC<LessonProps> = ({ lessonData, onComplete, onExit }) => {
     }
   }
 
+  const handleConfirmExit = () => {
+    setShowExitModal(false)
+    onExit()
+  }
+
+  const handleCancelExit = () => {
+    setShowExitModal(false)
+  }
+
   const isCorrect = selectedAnswer === lessonData.correctAnswer
 
   return (
@@ -46,7 +56,7 @@ const Lesson: React.FC<LessonProps> = ({ lessonData, onComplete, onExit }) => {
       {/* Left Half - Educational Content */}
       <div className="lesson-left">
         <div className="lesson-header">
-          <button className="lesson-exit" onClick={onExit}>
+          <button className="lesson-exit" onClick={() => setShowExitModal(true)}>
             ✕
           </button>
           <h1 className="lesson-title">{lessonData.title}</h1>
@@ -64,7 +74,6 @@ const Lesson: React.FC<LessonProps> = ({ lessonData, onComplete, onExit }) => {
           </div>
 
           <div className="content-visual">
-            {/* Este é apenas um exemplo de código que pode ser removido ou alterado conforme necessário */}
             <div className="code-example">
               <pre>
                 <code>{`// Exemplo simples de um autômato finito determinístico (DFA)
@@ -112,8 +121,8 @@ function isAccepted(input) {
                     ? index === lessonData.correctAnswer
                       ? "correct"
                       : selectedAnswer === index
-                        ? "incorrect"
-                        : ""
+                      ? "incorrect"
+                      : ""
                     : ""
                 }`}
                 onClick={() => handleAnswerSelect(index)}
@@ -158,6 +167,24 @@ function isAccepted(input) {
           </div>
         </div>
       </div>
+
+      {/* Exit Confirmation Modal */}
+      {showExitModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Tem certeza que deseja sair?</h3>
+            <p>Seu progresso nesta lição não será salvo.</p>
+            <div className="modal-actions">
+              <button className="modal-button cancel" onClick={handleCancelExit}>
+                Cancelar
+              </button>
+              <button className="modal-button confirm" onClick={handleConfirmExit}>
+                Sair sem salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
