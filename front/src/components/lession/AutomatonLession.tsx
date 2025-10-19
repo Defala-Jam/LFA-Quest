@@ -19,7 +19,7 @@ interface Bola {
   offset: Offset;
   conectada: boolean;
   selecionada: boolean;
-  caractere: string; // Novo campo para o caractere
+  caractere: string;
 }
 
 interface Conexao {
@@ -29,22 +29,13 @@ interface Conexao {
   ativa: boolean;
   direcao: string;
   tipo: 'normal' | 'autorreflexao';
+  caractere: string; // Novo campo para caractere da conexão
 }
 
 const BolaArrastavel = () => {
   const VELOCIDADE_SUAVIZACAO = 0.3;
 
   const [bolas, setBolas] = useState<Bola[]>([
-    {
-      id: 1,
-      posicao: { x: 0, y: 0 },
-      posicaoAlvo: { x: 0, y: 0 },
-      arrastando: false,
-      offset: { x: 0, y: 0 },
-      conectada: false,
-      selecionada: false,
-      caractere: 'A' // Caractere para a bola 1
-    },
     {
       id: 2,
       posicao: { x: 0, y: 0 },
@@ -53,7 +44,7 @@ const BolaArrastavel = () => {
       offset: { x: 0, y: 0 },
       conectada: false,
       selecionada: false,
-      caractere: 'B' // Caractere para a bola 2
+      caractere: 'B'
     },
     {
       id: 3,
@@ -63,7 +54,7 @@ const BolaArrastavel = () => {
       offset: { x: 0, y: 0 },
       conectada: false,
       selecionada: false,
-      caractere: 'C' // Caractere para a bola 2  
+      caractere: 'C' 
     },
     {
       id: 4,
@@ -73,14 +64,15 @@ const BolaArrastavel = () => {
       offset: { x: 0, y: 0 },
       conectada: false,
       selecionada: false,
-      caractere: 'D' // Caractere para a bola 2  
+      caractere: 'D' 
     }
-    
   ]);
 
   const [conexoes, setConexoes] = useState<Conexao[]>([]);
   const [modoConectar, setModoConectar] = useState<boolean>(false);
   const [bolaSelecionada, setBolaSelecionada] = useState<number | null>(null);
+  const [editandoConexao, setEditandoConexao] = useState<string | null>(null);
+  const [novoCaractere, setNovoCaractere] = useState<string>('');
   
   const bolaRefs = useRef<{[key: number]: HTMLDivElement | null}>({});
   const containerRef = useRef<HTMLDivElement>(null);
@@ -126,30 +118,29 @@ const BolaArrastavel = () => {
   };
 
   const posicionarBolas = () => {
-    if (containerRef.current && bolaRefs.current[1] && bolaRefs.current[2]) {
+    if (containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
-      const bola1Rect = bolaRefs.current[1].getBoundingClientRect();
-      const bola2Rect = bolaRefs.current[2].getBoundingClientRect();
+      const bolaWidth = 85;
+      const bolaHeight = 85;
       
-      const x1 = containerRect.width * 0.40 - bola1Rect.width / 2;
-      const y1 = (containerRect.height - bola1Rect.height) / 2;
+      const colunas = 2;
+      const linhas = Math.ceil(bolas.length / colunas);
+      const espacamentoX = containerRect.width / (colunas + 1);
+      const espacamentoY = containerRect.height / (linhas + 1);
       
-      const x2 = containerRect.width * 0.75 - bola2Rect.width / 2;
-      const y2 = (containerRect.height - bola2Rect.height) / 2;
-      
-      setBolas(prev => prev.map(bola => 
-        bola.id === 1 
-          ? { 
-              ...bola, 
-              posicao: { x: x1, y: y1 },
-              posicaoAlvo: { x: x1, y: y1 }
-            }
-          : { 
-              ...bola, 
-              posicao: { x: x2, y: y2 },
-              posicaoAlvo: { x: x2, y: y2 }
-            }
-      ));
+      setBolas(prev => prev.map((bola, index) => {
+        const coluna = index % colunas;
+        const linha = Math.floor(index / colunas);
+        
+        const x = espacamentoX * (coluna + 1) - bolaWidth / 2;
+        const y = espacamentoY * (linha + 1) - bolaHeight / 2;
+        
+        return {
+          ...bola,
+          posicao: { x, y },
+          posicaoAlvo: { x, y }
+        };
+      }));
     }
   };
 
@@ -286,7 +277,8 @@ const BolaArrastavel = () => {
           para: id,
           ativa: true,
           direcao: `${id}→${id}`,
-          tipo: 'autorreflexao'
+          tipo: 'autorreflexao',
+          caractere: 'ε' // Caractere padrão para autorreflexão
         };
         
         setConexoes(prev => [...prev, novaConexao]);
@@ -311,7 +303,8 @@ const BolaArrastavel = () => {
           para: id,
           ativa: true,
           direcao: `${bolaSelecionada}→${id}`,
-          tipo: 'normal'
+          tipo: 'normal',
+          caractere: 'a' // Caractere padrão para conexões normais
         };
         
         setConexoes(prev => [...prev, novaConexao]);
@@ -325,6 +318,29 @@ const BolaArrastavel = () => {
       setBolaSelecionada(null);
       setModoConectar(false);
     }
+  };
+
+  // Editar caractere de uma conexão
+  const iniciarEdicaoConexao = (conexaoId: string, caractereAtual: string) => {
+    setEditandoConexao(conexaoId);
+    setNovoCaractere(caractereAtual);
+  };
+
+  const confirmarEdicaoConexao = () => {
+    if (editandoConexao && novoCaractere.trim() !== '') {
+      setConexoes(prev => prev.map(conexao => 
+        conexao.id === editandoConexao 
+          ? { ...conexao, caractere: novoCaractere.trim() }
+          : conexao
+      ));
+      setEditandoConexao(null);
+      setNovoCaractere('');
+    }
+  };
+
+  const cancelarEdicaoConexao = () => {
+    setEditandoConexao(null);
+    setNovoCaractere('');
   };
 
   const removerConexao = (conexaoId: string) => {
@@ -389,17 +405,17 @@ const BolaArrastavel = () => {
     const dy = centroBolaPara.y - centroBolaDe.y;
     const distancia = Math.sqrt(dx * dx + dy * dy);
 
+    if (distancia === 0) return null;
+
     const direcaoX = dx / distancia;
     const direcaoY = dy / distancia;
 
-    // Vetor perpendicular para criar espaçamento
     const perpendicularX = -direcaoY;
     const perpendicularY = direcaoX;
 
     const raioBola = bolaDeRect.width / 2;
     
-    // Aumentar o espaçamento para conexões duplas
-    const espacamento = Math.abs(offset) > 0 ? 20 : 0; // 20px de espaçamento para conexões duplas
+    const espacamento = Math.abs(offset) > 0 ? 15 : 0;
     
     const inicio = {
       x: centroBolaDe.x + direcaoX * raioBola + perpendicularX * espacamento * Math.sign(offset),
@@ -411,7 +427,13 @@ const BolaArrastavel = () => {
       y: centroBolaPara.y - direcaoY * raioBola + perpendicularY * espacamento * Math.sign(offset)
     };
 
-    const tamanhoSeta = 15;
+    // Calcular ponto médio para posicionar o caractere
+    const meio = {
+      x: (inicio.x + fim.x) / 2 + perpendicularY * 10, // Deslocar um pouco para o lado
+      y: (inicio.y + fim.y) / 2 - perpendicularX * 10
+    };
+
+    const tamanhoSeta = 12;
     const anguloSeta = Math.PI / 6;
 
     const ponta1 = {
@@ -424,7 +446,7 @@ const BolaArrastavel = () => {
       y: fim.y - direcaoY * tamanhoSeta + direcaoX * tamanhoSeta * Math.tan(anguloSeta)
     };
 
-    return { inicio, fim, ponta1, ponta2, direcaoX, direcaoY };
+    return { inicio, fim, ponta1, ponta2, direcaoX, direcaoY, meio };
   };
 
   // Calcular pontos para autorreflexão com raio maior
@@ -439,19 +461,19 @@ const BolaArrastavel = () => {
     };
 
     const raio = bolaRect.width / 2;
-    const raioLoop = raio * 2.5;
+    const raioLoop = raio * 2.2;
 
     const anguloInicio = Math.PI / 4;
     const anguloFim = 2 * Math.PI - Math.PI / 4;
 
     const pontoControle1 = {
-      x: centro.x + raioLoop * Math.cos(anguloInicio) + 35,
-      y: centro.y - raioLoop * Math.sin(anguloInicio) + 40
+      x: centro.x + raioLoop * Math.cos(anguloInicio) + 20,
+      y: centro.y - raioLoop * Math.sin(anguloInicio) + 25
     };
 
     const pontoControle2 = {
-      x: centro.x + raioLoop * Math.cos(anguloFim) + 30,
-      y: centro.y - raioLoop * Math.sin(anguloFim) + 20
+      x: centro.x + raioLoop * Math.cos(anguloFim) + 15,
+      y: centro.y - raioLoop * Math.sin(anguloFim) + 10
     };
 
     const pontoFim = {
@@ -459,7 +481,13 @@ const BolaArrastavel = () => {
       y: centro.y - raio * Math.sin(anguloFim)
     };
 
-    const tamanhoSeta = 12;
+    // Ponto para o caractere na autorreflexão
+    const pontoCaractere = {
+      x: centro.x + raioLoop * 0.7,
+      y: centro.y - raioLoop * 0.7
+    };
+
+    const tamanhoSeta = 10;
     const ponta1 = {
       x: pontoFim.x - Math.cos(anguloFim) * tamanhoSeta + Math.sin(anguloFim) * tamanhoSeta,
       y: pontoFim.y - Math.sin(anguloFim) * tamanhoSeta - Math.cos(anguloFim) * tamanhoSeta
@@ -477,6 +505,7 @@ const BolaArrastavel = () => {
       pontoFim, 
       ponta1, 
       ponta2,
+      pontoCaractere,
       raioLoop 
     };
   };
@@ -493,6 +522,12 @@ const BolaArrastavel = () => {
     return Math.sqrt(dx * dx + dy * dy);
   };
 
+  // Nova lógica para determinar offset em conexões duplas
+  const calcularOffsetConexaoDupla = (deId: number, paraId: number): number => {
+    const hash = deId * 31 + paraId;
+    return hash % 2 === 0 ? 1 : -1;
+  };
+
   const existeConexaoDupla = (bola1: number, bola2: number): boolean => {
     return existeConexao(bola1, bola2) && existeConexao(bola2, bola1);
   };
@@ -501,6 +536,42 @@ const BolaArrastavel = () => {
   const getCaractereBola = (id: number): string => {
     const bola = bolas.find(b => b.id === id);
     return bola?.caractere || id.toString();
+  };
+
+  // Obter caractere da conexão
+  const getCaractereConexao = (deId: number, paraId: number): string => {
+    const conexao = conexoes.find(c => c.de === deId && c.para === paraId);
+    return conexao?.caractere || '';
+  };
+
+  // Gerar resumo de todas as conexões possíveis
+  const gerarResumoConexoes = () => {
+    const resumo = [];
+    for (let i = 0; i < bolas.length; i++) {
+      for (let j = 0; j < bolas.length; j++) {
+        if (i !== j) {
+          const de = bolas[i].id;
+          const para = bolas[j].id;
+          const conexao = conexoes.find(c => c.de === de && c.para === para);
+          resumo.push(
+            <p key={`${de}-${para}`}>
+              {getCaractereBola(de)} → {getCaractereBola(para)}: 
+              {conexao ? ` ${conexao.caractere}` : ' ❌'}
+            </p>
+          );
+        }
+      }
+      // Adicionar autorreflexão
+      const bolaId = bolas[i].id;
+      const autorreflexao = conexoes.find(c => c.de === bolaId && c.para === bolaId);
+      resumo.push(
+        <p key={`${bolaId}-self`}>
+          {getCaractereBola(bolaId)} → Si: 
+          {autorreflexao ? ` ${autorreflexao.caractere}` : ' ❌'}
+        </p>
+      );
+    }
+    return resumo;
   };
 
   return (
@@ -559,12 +630,24 @@ const BolaArrastavel = () => {
                   fill="none"
                   markerEnd="url(#arrowhead-autorreflexao)"
                 />
+                {/* Texto do caractere na autorreflexão */}
+                <text
+                  x={pontos.pontoCaractere.x}
+                  y={pontos.pontoCaractere.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="caractere-conexao"
+                  fontSize="14"
+                  fontWeight="bold"
+                  fill="#9C27B0"
+                >
+                  {conexao.caractere}
+                </text>
               </g>
             );
           } else {
             const isDupla = existeConexaoDupla(conexao.de, conexao.para);
-            // Para conexões duplas, uma seta fica acima e outra abaixo
-            const offset = isDupla ? (conexao.de === 1 ? 1 : -1) : 0;
+            const offset = isDupla ? calcularOffsetConexaoDupla(conexao.de, conexao.para) : 0;
 
             const pontos = calcularPontosSetaNormal(conexao.de, conexao.para, offset);
             if (!pontos) return null;
@@ -588,6 +671,19 @@ const BolaArrastavel = () => {
                   `}
                   fill={conexao.ativa ? "#4CAF50" : "#FF5722"}
                 />
+                {/* Texto do caractere na conexão normal */}
+                <text
+                  x={pontos.meio.x}
+                  y={pontos.meio.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="caractere-conexao"
+                  fontSize="14"
+                  fontWeight="bold"
+                  fill={conexao.ativa ? "#4CAF50" : "#FF5722"}
+                >
+                  {conexao.caractere}
+                </text>
               </g>
             );
           }
@@ -607,9 +703,11 @@ const BolaArrastavel = () => {
           `}
           style={{
             transform: `translate(${bola.posicao.x}px, ${bola.posicao.y}px)`,
-            background: bola.id === 1 
-              ? 'radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b)'
-              : 'radial-gradient(circle at 30% 30%, #6bffb8, #2bc06a)'
+            background: `radial-gradient(circle at 30% 30%, ${
+              bola.id === 2 ? '#ff6b6b, #c0392b' :
+              bola.id === 3 ? '#6bffb8, #2bc06a' :
+              '#ffeb3b, #ff9800'
+            })`
           }}
           onMouseDown={(e) => iniciarArraste(e, bola.id)}
           onTouchStart={(e) => iniciarArraste(e, bola.id)}
@@ -620,7 +718,7 @@ const BolaArrastavel = () => {
       ))}
       
       <div className="info">
-        <h1>Sistema com Autorreflexão</h1>
+        <h1>Sistema de Autômatos</h1>
         
         <div className="controles">
           {!modoConectar ? (
@@ -657,26 +755,53 @@ const BolaArrastavel = () => {
           <h3>Conexões ({conexoes.length})</h3>
           {conexoes.map(conexao => (
             <div key={conexao.id} className={`conexao-item ${conexao.tipo}`}>
-              <span className="direcao">
-                {conexao.tipo === 'autorreflexao' ? '🔄' : '→'} 
-                {getCaractereBola(conexao.de)} {conexao.tipo === 'autorreflexao' ? '→ Si mesma' : `→ ${getCaractereBola(conexao.para)}`}
-              </span>
-              <span className="distancia">
-                ({conexao.tipo === 'autorreflexao' ? 'loop' : Math.round(calcularDistancia(conexao.de, conexao.para)) + 'px'})
-              </span>
-              <button onClick={() => removerConexao(conexao.id)} className="btn-remover">
-                Remover
-              </button>
+              <div className="conexao-detalhes">
+                <span className="direcao">
+                  {conexao.tipo === 'autorreflexao' ? '🔄' : '→'} 
+                  {getCaractereBola(conexao.de)} {conexao.tipo === 'autorreflexao' ? '→ Si mesma' : `→ ${getCaractereBola(conexao.para)}`}
+                </span>
+                <span className="distancia">
+                  ({conexao.tipo === 'autorreflexao' ? 'loop' : Math.round(calcularDistancia(conexao.de, conexao.para)) + 'px'})
+                </span>
+              </div>
+              
+              <div className="conexao-controles">
+                {editandoConexao === conexao.id ? (
+                  <div className="edicao-caractere">
+                    <input
+                      type="text"
+                      value={novoCaractere}
+                      onChange={(e) => setNovoCaractere(e.target.value)}
+                      maxLength={1}
+                      className="input-caractere"
+                      autoFocus
+                    />
+                    <button onClick={confirmarEdicaoConexao} className="btn-confirmar">
+                      ✓
+                    </button>
+                    <button onClick={cancelarEdicaoConexao} className="btn-cancelar-edicao">
+                      ✗
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="caractere-conexao-texto" 
+                          onClick={() => iniciarEdicaoConexao(conexao.id, conexao.caractere)}>
+                      [{conexao.caractere}]
+                    </span>
+                    <button onClick={() => removerConexao(conexao.id)} className="btn-remover">
+                      Remover
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
         <div className="resumo-conexoes">
-          <h4>Resumo:</h4>
-          <p>{getCaractereBola(1)} → {getCaractereBola(2)}: {existeConexao(1, 2) ? '✅' : '❌'}</p>
-          <p>{getCaractereBola(2)} → {getCaractereBola(1)}: {existeConexao(2, 1) ? '✅' : '❌'}</p>
-          <p>{getCaractereBola(1)} → Si: {existeConexao(1, 1) ? '🔄' : '❌'}</p>
-          <p>{getCaractereBola(2)} → Si: {existeConexao(2, 2) ? '🔄' : '❌'}</p>
+          <h4>Resumo de Conexões:</h4>
+          {gerarResumoConexoes()}
         </div>
 
         <button onClick={posicionarBolas}>Centralizar Bolas</button>
