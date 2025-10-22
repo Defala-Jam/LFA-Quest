@@ -166,52 +166,68 @@
   filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.7));
 }
 
-/* Estilos para caracteres das conexões */
+/* ====== CARACTERES DAS CONEXÕES - CORRIGIDO ====== */
 .caractere-conexao {
   pointer-events: none;
   user-select: none;
   font-family: 'Arial', sans-serif;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  /* Fundo com contraste para melhor visibilidade */
+  paint-order: stroke;
+  stroke: #0f172a;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Sombra para destaque */
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
 }
 
+/* Cores específicas para diferentes tipos de conexão */
+.seta-conectavel .caractere-conexao {
+  fill: #ffffff; /* Branco para contraste com o fundo escuro */
+  stroke: #0f172a;
+}
+
+.seta-autorreflexao .caractere-conexao {
+  fill: #ffffff; /* Branco para contraste */
+  stroke: #0f172a;
+}
+
+/* Posicionamento melhorado para os caracteres */
+.seta-conectavel text {
+  transform: translate(-50%, -50%);
+}
+
+.seta-autorreflexao text {
+  transform: translate(-50%, -50%);
+}
+
+/* Efeito hover nos caracteres */
 .caractere-conexao:hover {
-  filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.8));
+  fill: #fbbf24; /* Amarelo no hover para destacar */
+  filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.8));
 }
 
 /* ====== CONTROLES SIMPLIFICADOS ====== */
-.automaton-controls {
+.automaton-simple-controls {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(30, 41, 59, 0.95);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  top: 15px;
+  right: 15px;
   z-index: 10;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
 }
 
-.controles {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.btn-conectar, .btn-remover {
-  padding: 8px 12px;
+.btn-conectar, .btn-cancelar {
+  padding: 8px 16px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   transition: all 0.3s;
   font-weight: 600;
   color: white;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-conectar {
@@ -223,85 +239,96 @@
   transform: translateY(-1px);
 }
 
-.btn-remover {
+.btn-cancelar {
   background: #ef4444;
 }
 
-.btn-remover:hover {
+.btn-cancelar:hover {
   background: #dc2626;
   transform: translateY(-1px);
 }
 
-.status {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 6px;
-  margin-top: 8px;
-  border-left: 2px solid #38bdf8;
+/* ====== CONEXÕES SELECIONÁVEIS ====== */
+.seta-conectavel.selecionada line {
+  stroke: #3b82f6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.7));
 }
 
-.status p {
-  margin: 3px 0;
-  font-size: 0.8rem;
-  color: #cbd5e1;
-  text-align: center;
+.seta-autorreflexao.selecionada path {
+  stroke: #8b5cf6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.7));
 }
 
-/* ====== MODAL DE EDIÇÃO DE CARACTERE ====== */
+.seta-conectavel.selecionada polygon {
+  fill: #3b82f6 !important;
+}
+
+.seta-conectavel.selecionada .caractere-conexao,
+.seta-autorreflexao.selecionada .caractere-conexao {
+  fill: #fbbf24; /* Amarelo quando selecionado */
+  stroke: #0f172a;
+  filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.8));
+}
+
+/* ====== MODAL DE EDIÇÃO ====== */
 .edicao-caractere-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(30, 41, 59, 0.95);
+  background: #1e293b;
   padding: 20px;
   border-radius: 10px;
   border: 2px solid #38bdf8;
   z-index: 100;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  min-width: 250px;
 }
 
 .edicao-caractere-modal h4 {
   margin: 0 0 15px 0;
   color: #38bdf8;
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .edicao-caractere {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
 .input-caractere {
   width: 60px;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #38bdf8;
   border-radius: 6px;
   text-align: center;
   font-weight: bold;
-  font-size: 1.1rem;
-  background: #1e293b;
+  font-size: 1.2rem;
+  background: #0f172a;
   color: #e2e8f0;
 }
 
 .botoes-edicao {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
 }
 
 .btn-confirmar, .btn-cancelar-edicao {
-  padding: 6px 12px;
+  padding: 8px 16px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   transition: all 0.2s;
   color: white;
   font-weight: 600;
+  flex: 1;
 }
 
 .btn-confirmar {
@@ -313,14 +340,21 @@
 }
 
 .btn-cancelar-edicao {
-  background: #ef4444;
+  background: #6b7280;
 }
 
 .btn-cancelar-edicao:hover {
-  background: #dc2626;
+  background: #4b5563;
 }
 
-/* Overlay para o modal */
+.dica-modal {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 10px 0 0 0;
+  font-style: italic;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -329,7 +363,6 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 99;
-  backdrop-filter: blur(2px);
 }
 
 /* ====== LADO ESQUERDO (EXPLICAÇÃO) ====== */
@@ -365,8 +398,6 @@
   color: #cbd5e1;
   text-align: justify;
 }
-
-/* Resto do CSS permanece igual... */
 
 .question-container {
   width: 100%;
@@ -588,6 +619,7 @@
     transform: translateY(0);
   }
 }
+
 /* ====== CONTAINER GERAL DO RESUMO ====== */
 .summary-container {
   display: flex;
@@ -726,6 +758,7 @@
     padding: 0.8rem 1.8rem;
   }
 }
+
 /* ====== BOTÃO REPETIR LIÇÃO ====== */
 .repeat-button {
   background: transparent;
@@ -751,4 +784,5 @@
   flex-direction: column;
   align-items: center;
 }
+
 

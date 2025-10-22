@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import "./LessonTemplate.css"
 import "./AutomatonLesson.css"
 
@@ -60,13 +60,13 @@ const AutomatonLesson: React.FC = () => {
 
   // Definindo os 8 estados possíveis
   const [estados, setEstados] = useState<Estado[]>([
-    { id: 1, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1", isInicial: true, isFinal: false },
+    { id: 1, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1", isInicial: false, isFinal: false },
     { id: 2, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "2", isInicial: false, isFinal: false },
     { id: 3, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "3", isInicial: false, isFinal: false },
     { id: 4, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,2", isInicial: false, isFinal: false },
     { id: 5, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,3", isInicial: false, isFinal: false },
     { id: 6, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "2,3", isInicial: false, isFinal: false },
-    { id: 7, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,2,3", isInicial: false, isFinal: true }
+    { id: 7, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,2,3", isInicial: false, isFinal: false }
   ]);
 
   const [conexoes, setConexoes] = useState<Conexao[]>([]);
@@ -74,6 +74,7 @@ const AutomatonLesson: React.FC = () => {
   const [estadoSelecionado, setEstadoSelecionado] = useState<number | null>(null);
   const [editandoConexao, setEditandoConexao] = useState<string | null>(null);
   const [novoCaractere, setNovoCaractere] = useState<string>('');
+  const [conexaoSelecionada, setConexaoSelecionada] = useState<string | null>(null);
   
   const estadoRefs = React.useRef<{[key: number]: HTMLDivElement | null}>({});
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -84,7 +85,7 @@ const AutomatonLesson: React.FC = () => {
     estadoRefs.current[id] = el;
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     posicionarEstados();
     
     const animar = () => {
@@ -98,6 +99,23 @@ const AutomatonLesson: React.FC = () => {
       cancelAnimationFrame(animationFrameRef.current);
     };
   }, []);
+
+  // Adicionar listener para tecla Delete
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (conexaoSelecionada) {
+          removerConexao(conexaoSelecionada);
+          setConexaoSelecionada(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [conexaoSelecionada]);
 
   const atualizarSuavizacao = () => {
     setEstados(prev => prev.map(estado => {
@@ -253,77 +271,90 @@ const AutomatonLesson: React.FC = () => {
   const desativarModoConectar = () => {
     setModoConectar(false);
     setEstadoSelecionado(null);
-    setEstados(prev => prev.map(estado => ({ ...estado, selecionada: false, conectada: false })));
+    setEstados(prev => prev.map(estado => ({ ...estado, selecionada: false })));
   };
 
   const clicarEstado = (id: number) => {
-    if (!modoConectar) return;
+    // Duplo clique para definir estado inicial/final
+    const handleDuploClique = () => {
+      setEstados(prev => prev.map(estado => {
+        if (estado.id === id) {
+          // Se já é inicial, torna final; se já é final, remove ambos; se nenhum, torna inicial
+          if (estado.isInicial) {
+            return { ...estado, isInicial: false, isFinal: true };
+          } else if (estado.isFinal) {
+            return { ...estado, isFinal: false };
+          } else {
+            return { ...estado, isInicial: true };
+          }
+        }
+        return estado;
+      }));
+    };
 
-    if (estadoSelecionado === null) {
-      setEstadoSelecionado(id);
-      setEstados(prev => prev.map(estado => 
-        estado.id === id ? { ...estado, selecionada: true } : { ...estado, selecionada: false }
-      ));
-    } else if (estadoSelecionado === id) {
-      // Autorreflexão
-      const conexaoId = `autorreflexao-${id}`;
-      
-      const conexaoExistente = conexoes.find(conexao => 
-        conexao.id === conexaoId
-      );
-
-      if (!conexaoExistente) {
-        const novaConexao: Conexao = {
-          id: conexaoId,
-          de: id,
-          para: id,
-          ativa: true,
-          direcao: `${id}→${id}`,
-          tipo: 'autorreflexao',
-          caractere: 'ε'
-        };
-        
-        setConexoes(prev => [...prev, novaConexao]);
+    // Clique simples para modo conectar
+    if (modoConectar) {
+      if (estadoSelecionado === null) {
+        setEstadoSelecionado(id);
         setEstados(prev => prev.map(estado => 
-          estado.id === id ? { ...estado, conectada: true, selecionada: false } : estado
+          estado.id === id ? { ...estado, selecionada: true } : { ...estado, selecionada: false }
         ));
-      }
+      } else if (estadoSelecionado === id) {
+        // Autorreflexão
+        const conexaoId = `autorreflexao-${id}`;
+        
+        const conexaoExistente = conexoes.find(conexao => 
+          conexao.id === conexaoId
+        );
 
-      setEstadoSelecionado(null);
-      setModoConectar(false);
+        if (!conexaoExistente) {
+          const novaConexao: Conexao = {
+            id: conexaoId,
+            de: id,
+            para: id,
+            ativa: true,
+            direcao: `${id}→${id}`,
+            tipo: 'autorreflexao',
+            caractere: 'ε'
+          };
+          
+          setConexoes(prev => [...prev, novaConexao]);
+        }
+
+        setEstadoSelecionado(null);
+        setModoConectar(false);
+      } else {
+        // Conexão normal
+        const conexaoId = `conexao-${estadoSelecionado}-${id}`;
+        
+        const conexaoExistente = conexoes.find(conexao => 
+          conexao.id === conexaoId
+        );
+
+        if (!conexaoExistente) {
+          const novaConexao: Conexao = {
+            id: conexaoId,
+            de: estadoSelecionado,
+            para: id,
+            ativa: true,
+            direcao: `${estadoSelecionado}→${id}`,
+            tipo: 'normal',
+            caractere: 'a'
+          };
+          
+          setConexoes(prev => [...prev, novaConexao]);
+        }
+
+        setEstadoSelecionado(null);
+        setModoConectar(false);
+      }
     } else {
-      // Conexão normal
-      const conexaoId = `conexao-${estadoSelecionado}-${id}`;
-      
-      const conexaoExistente = conexoes.find(conexao => 
-        conexao.id === conexaoId
-      );
-
-      if (!conexaoExistente) {
-        const novaConexao: Conexao = {
-          id: conexaoId,
-          de: estadoSelecionado,
-          para: id,
-          ativa: true,
-          direcao: `${estadoSelecionado}→${id}`,
-          tipo: 'normal',
-          caractere: 'a'
-        };
-        
-        setConexoes(prev => [...prev, novaConexao]);
-        setEstados(prev => prev.map(estado => 
-          (estado.id === estadoSelecionado || estado.id === id) 
-            ? { ...estado, conectada: true, selecionada: false } 
-            : estado
-        ));
-      }
-
-      setEstadoSelecionado(null);
-      setModoConectar(false);
+      // Clique simples normal - não faz nada especial
+      handleDuploClique();
     }
   };
 
-  // Funções auxiliares para cálculos de conexões (simplificadas)
+  // Funções auxiliares para cálculos de conexões
   const calcularPontosSetaNormal = (deId: number, paraId: number, offset: number = 0) => {
     const estadoDe = estados.find(estado => estado.id === deId);
     const estadoPara = estados.find(estado => estado.id === paraId);
@@ -451,9 +482,13 @@ const AutomatonLesson: React.FC = () => {
     };
   };
 
-  const iniciarEdicaoConexao = (conexaoId: string, caractereAtual: string) => {
+  const handleDuploCliqueConexao = (conexaoId: string, caractereAtual: string) => {
     setEditandoConexao(conexaoId);
     setNovoCaractere(caractereAtual);
+  };
+
+  const handleCliqueConexao = (conexaoId: string) => {
+    setConexaoSelecionada(conexaoId);
   };
 
   const confirmarEdicaoConexao = () => {
@@ -480,13 +515,21 @@ const AutomatonLesson: React.FC = () => {
     }
   };
 
-  const removerTodasConexoes = () => {
-    setConexoes([]);
-    setEstados(prev => prev.map(estado => ({ ...estado, conectada: false })));
-  };
-
   return (
     <div className="automaton-container" ref={containerRef}>
+      {/* Botão simples para gerenciar conexões */}
+      <div className="automaton-simple-controls">
+        {!modoConectar ? (
+          <button className="btn-conectar" onClick={ativarModoConectar}>
+            🔗 Criar Conexões
+          </button>
+        ) : (
+          <button className="btn-cancelar" onClick={desativarModoConectar}>
+            ❌ Cancelar
+          </button>
+        )}
+      </div>
+
       <svg
         ref={svgRef}
         className="seta-conexao"
@@ -528,7 +571,13 @@ const AutomatonLesson: React.FC = () => {
             if (!pontos) return null;
 
             return (
-              <g key={conexao.id} className="seta-autorreflexao">
+              <g 
+                key={conexao.id} 
+                className={`seta-autorreflexao ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
+                onClick={() => handleCliqueConexao(conexao.id)}
+                onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
+                style={{ cursor: 'pointer' }}
+              >
                 <path
                   d={`
                     M ${pontos.centro.x + pontos.raioLoop * 0.3}, ${pontos.centro.y}
@@ -537,7 +586,7 @@ const AutomatonLesson: React.FC = () => {
                       ${pontos.pontoFim.x}, ${pontos.pontoFim.y}
                   `}
                   stroke="#9C27B0"
-                  strokeWidth="3"
+                  strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
                   fill="none"
                   markerEnd="url(#arrowhead-autorreflexao)"
                 />
@@ -550,6 +599,7 @@ const AutomatonLesson: React.FC = () => {
                   fontSize="14"
                   fontWeight="bold"
                   fill="#9C27B0"
+                  style={{ cursor: 'pointer' }}
                 >
                   {conexao.caractere}
                 </text>
@@ -560,14 +610,20 @@ const AutomatonLesson: React.FC = () => {
             if (!pontos) return null;
 
             return (
-              <g key={conexao.id} className="seta-conectavel">
+              <g 
+                key={conexao.id} 
+                className={`seta-conectavel ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
+                onClick={() => handleCliqueConexao(conexao.id)}
+                onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
+                style={{ cursor: 'pointer' }}
+              >
                 <line
                   x1={pontos.inicio.x}
                   y1={pontos.inicio.y}
                   x2={pontos.fim.x}
                   y2={pontos.fim.y}
                   stroke="#4CAF50"
-                  strokeWidth="3"
+                  strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
                   markerEnd="url(#arrowhead)"
                 />
                 <polygon
@@ -587,6 +643,7 @@ const AutomatonLesson: React.FC = () => {
                   fontSize="14"
                   fontWeight="bold"
                   fill="#4CAF50"
+                  style={{ cursor: 'pointer' }}
                 >
                   {conexao.caractere}
                 </text>
@@ -621,92 +678,40 @@ const AutomatonLesson: React.FC = () => {
         </div>
       ))}
       
-      <div className="automaton-controls">
-        <h3>Controles do Autômato</h3>
-        
-        <div className="controles">
-          {!modoConectar ? (
-            <button className="btn-conectar" onClick={ativarModoConectar}>
-              🔗 Conectar Estados
-            </button>
-          ) : (
-            <button className="btn-cancelar" onClick={desativarModoConectar}>
-              ❌ Cancelar Conexão
-            </button>
-          )}
-          
-          {conexoes.length > 0 && (
-            <button className="btn-remover-todas" onClick={removerTodasConexoes}>
-              🗑️ Remover Todas as Conexões
-            </button>
-          )}
-        </div>
-
-        <div className="status">
-          <p>Modo: <strong>{modoConectar ? 'CONECTAR' : 'ARRASTAR'}</strong></p>
-          {modoConectar && estadoSelecionado && (
-            <p>Estado selecionado: {estados.find(e => e.id === estadoSelecionado)?.nome} - Clique em outro estado ou no mesmo para autorreflexão</p>
-          )}
-          {modoConectar && !estadoSelecionado && (
-            <p>Clique em um estado para começar a conectar</p>
-          )}
-        </div>
-
-        <div className="conexoes-info">
-          <h4>Conexões ({conexoes.length})</h4>
-          {conexoes.map(conexao => {
-            const estadoDe = estados.find(e => e.id === conexao.de);
-            const estadoPara = estados.find(e => e.id === conexao.para);
-            
-            return (
-              <div key={conexao.id} className={`conexao-item ${conexao.tipo}`}>
-                <div className="conexao-detalhes">
-                  <span className="direcao">
-                    {conexao.tipo === 'autorreflexao' ? '🔄' : '→'} 
-                    {estadoDe?.nome} {conexao.tipo === 'autorreflexao' ? '→ Si mesma' : `→ ${estadoPara?.nome}`}
-                  </span>
-                </div>
-                
-                <div className="conexao-controles">
-                  {editandoConexao === conexao.id ? (
-                    <div className="edicao-caractere">
-                      <input
-                        type="text"
-                        value={novoCaractere}
-                        onChange={(e) => setNovoCaractere(e.target.value)}
-                        maxLength={1}
-                        className="input-caractere"
-                        autoFocus
-                      />
-                      <button onClick={confirmarEdicaoConexao} className="btn-confirmar">
-                        ✓
-                      </button>
-                      <button onClick={cancelarEdicaoConexao} className="btn-cancelar-edicao">
-                        ✗
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="caractere-conexao-texto" 
-                            onClick={() => iniciarEdicaoConexao(conexao.id, conexao.caractere)}>
-                        [{conexao.caractere}]
-                      </span>
-                      <button onClick={() => removerConexao(conexao.id)} className="btn-remover">
-                        Remover
-                      </button>
-                    </>
-                  )}
-                </div>
+      {/* Modal de edição de caractere */}
+      {editandoConexao && (
+        <>
+          <div className="modal-overlay" onClick={cancelarEdicaoConexao} />
+          <div className="edicao-caractere-modal">
+            <h4>Editar Caractere da Transição</h4>
+            <div className="edicao-caractere">
+              <input
+                type="text"
+                value={novoCaractere}
+                onChange={(e) => setNovoCaractere(e.target.value)}
+                maxLength={1}
+                className="input-caractere"
+                autoFocus
+                placeholder="a"
+              />
+              <div className="botoes-edicao">
+                <button onClick={confirmarEdicaoConexao} className="btn-confirmar">
+                  Confirmar
+                </button>
+                <button onClick={cancelarEdicaoConexao} className="btn-cancelar-edicao">
+                  Cancelar
+                </button>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+            <p className="dica-modal">Pressione Delete para remover a conexão selecionada</p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-// Componente LessonTemplate principal
+// Componente LessonTemplate principal (mantido igual)
 const LessonTemplate: React.FC<LessonTemplateProps> = ({
   lessonData,
   onComplete,
@@ -717,8 +722,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
-
-  console.log("lessonData recebido:", lessonData)
 
   const handleAnswerSelect = (index: number) => {
     if (!isSubmitted) setSelectedAnswer(index)
@@ -735,7 +738,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     if (isCorrect) onComplete()
     else onIncorrect()
 
-    // resetar estado da próxima questão
     setSelectedAnswer(null)
     setIsCorrect(null)
     setIsSubmitted(false)
@@ -743,7 +745,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
 
   return (
     <div className="lesson-container">
-      {/* Lado esquerdo — explicação da pergunta atual */}
       <div className="lesson-left">
         <div className="lesson-header">
           <button className="lesson-exit" onClick={onExit}>
@@ -764,7 +765,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         </div>
       </div>
 
-      {/* Lado direito — pergunta e alternativas OU componente de autômato */}
       <div className="lesson-right">
         {isAutomaton ? (
           <AutomatonLesson />
