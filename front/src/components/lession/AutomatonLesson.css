@@ -6,6 +6,155 @@
   overflow: hidden;
 }
 
+/* ====== CONTROLES SIMPLIFICADOS ====== */
+.automaton-simple-controls {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+}
+
+.btn-conectar, .btn-cancelar {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-conectar {
+  background: #10b981;
+}
+
+.btn-conectar:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-cancelar {
+  background: #ef4444;
+}
+
+.btn-cancelar:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ====== CONEXÕES SELECIONÁVEIS ====== */
+.seta-conectavel.selecionada line {
+  stroke: #3b82f6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.7));
+}
+
+.seta-autorreflexao.selecionada path {
+  stroke: #8b5cf6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.7));
+}
+
+.seta-conectavel.selecionada polygon {
+  fill: #3b82f6 !important;
+}
+
+/* ====== MODAL DE EDIÇÃO ====== */
+.edicao-caractere-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #38bdf8;
+  z-index: 100;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  min-width: 250px;
+}
+
+.edicao-caractere-modal h4 {
+  margin: 0 0 15px 0;
+  color: #38bdf8;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.edicao-caractere {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.input-caractere {
+  width: 60px;
+  padding: 10px;
+  border: 1px solid #38bdf8;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.botoes-edicao {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-confirmar, .btn-cancelar-edicao {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  color: white;
+  font-weight: 600;
+  flex: 1;
+}
+
+.btn-confirmar {
+  background: #10b981;
+}
+
+.btn-confirmar:hover {
+  background: #059669;
+}
+
+.btn-cancelar-edicao {
+  background: #6b7280;
+}
+
+.btn-cancelar-edicao:hover {
+  background: #4b5563;
+}
+
+.dica-modal {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 10px 0 0 0;
+  font-style: italic;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+
 .bola {
   position: absolute;
   top: 0;

@@ -5,7 +5,6 @@ import Perfil from './pages/Perfil/Perfil.tsx';
 import Statistics from './pages/Statistics/Statistics.tsx';
 import Store from './pages/Store/Store.tsx'; 
 import Index from './pages/Index/Index.tsx';
-import BolaArrastavel from './components/lession/AutomatonLession.tsx'; 
 import "./Global.css"
 
 
@@ -14,8 +13,7 @@ function App() {
     <Router>
       <Routes>
 
-        <Route path="/automatonLesson" element={<Index />} />
-        <Route path="/" element={<BolaArrastavel />} />
+        <Route path="/" element={<Index />} />
         <Route path="/path" element={<Path_player />} />
         <Route path='/profile' element={<Perfil/>} />
         <Route path="/leaderboard" element={<Leaderboard />} />
