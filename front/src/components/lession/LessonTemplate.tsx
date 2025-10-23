@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import "./LessonTemplate.css"
-import "./AutomatonLesson.css"
 
 interface LessonData {
   title: string
