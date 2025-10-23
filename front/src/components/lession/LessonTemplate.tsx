@@ -680,7 +680,6 @@ const AutomatonLesson: React.FC = () => {
       {/* Modal de edição de caractere */}
       {editandoConexao && (
         <>
-          <div className="modal-overlay" onClick={cancelarEdicaoConexao} />
           <div className="edicao-caractere-modal">
             <h4>Editar Caractere da Transição</h4>
             <div className="edicao-caractere">
@@ -804,8 +803,8 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
                 }`}
               >
                 {isCorrect
-                  ? "🎉 Parabéns! Resposta correta!"
-                  : "💭 Resposta incorreta!"}
+                  ? " Parabéns! Resposta correta!"
+                  : "Resposta incorreta!"}
               </div>
             )}
 
