@@ -1,0 +1,577 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  overflow: hidden;
+}
+
+/* ====== CONTROLES SIMPLIFICADOS ====== */
+.automaton-simple-controls {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+}
+
+.btn-conectar, .btn-cancelar {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-conectar {
+  background: #10b981;
+}
+
+.btn-conectar:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-cancelar {
+  background: #ef4444;
+}
+
+.btn-cancelar:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ====== CONEXÕES SELECIONÁVEIS ====== */
+.seta-conectavel.selecionada line {
+  stroke: #3b82f6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.7));
+}
+
+.seta-autorreflexao.selecionada path {
+  stroke: #8b5cf6 !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.7));
+}
+
+.seta-conectavel.selecionada polygon {
+  fill: #3b82f6 !important;
+}
+
+/* ====== MODAL DE EDIÇÃO ====== */
+.edicao-caractere-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #38bdf8;
+  z-index: 100;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  min-width: 250px;
+}
+
+.edicao-caractere-modal h4 {
+  margin: 0 0 15px 0;
+  color: #38bdf8;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.edicao-caractere {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.input-caractere {
+  width: 60px;
+  padding: 10px;
+  border: 1px solid #38bdf8;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.botoes-edicao {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-confirmar, .btn-cancelar-edicao {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  color: white;
+  font-weight: 600;
+  flex: 1;
+}
+
+.btn-confirmar {
+  background: #10b981;
+}
+
+.btn-confirmar:hover {
+  background: #059669;
+}
+
+.btn-cancelar-edicao {
+  background: #6b7280;
+}
+
+.btn-cancelar-edicao:hover {
+  background: #4b5563;
+}
+
+.dica-modal {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 10px 0 0 0;
+  font-style: italic;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+
+.bola {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  cursor: move;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  user-select: none;
+  touch-action: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Arial', sans-serif;
+}
+
+.bola-caractere {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  user-select: none;
+}
+
+.bola.arrastando {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+.bola.conectada {
+  box-shadow: 0 0 0 3px #4CAF50, 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bola.selecionada {
+  box-shadow: 0 0 0 5px #FFC107, 0 10px 20px rgba(0, 0, 0, 0.3);
+  animation: pulsar-selecao 1s infinite;
+  transform: scale(1.1);
+  z-index: 3;
+}
+
+@keyframes pulsar-selecao {
+  0% { 
+    box-shadow: 0 0 0 3px #FFC107, 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 8px #FFC107, 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  100% { 
+    box-shadow: 0 0 0 3px #FFC107, 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Estilos específicos para cada bola */
+.bola-2 {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b);
+}
+
+.bola-3 {
+  background: radial-gradient(circle at 30% 30%, #6bffb8, #2bc06a);
+}
+
+.bola-4 {
+  background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800);
+}
+
+.seta-conexao {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.seta-conectavel {
+  pointer-events: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.seta-conectavel:hover line {
+  stroke-width: 5;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+}
+
+.seta-conectavel:hover polygon {
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+}
+
+/* Estilos para setas duplas com espaçamento */
+.seta-conectavel.dupla-superior line {
+  stroke: #2196F3;
+}
+
+.seta-conectavel.dupla-inferior line {
+  stroke: #FF9800;
+}
+
+.seta-conectavel.dupla-superior polygon {
+  fill: #2196F3;
+}
+
+.seta-conectavel.dupla-inferior polygon {
+  fill: #FF9800;
+}
+
+/* Estilos para autorreflexão */
+.seta-autorreflexao {
+  pointer-events: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.seta-autorreflexao:hover path {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 5px rgba(156, 39, 176, 0.7));
+}
+
+/* Estilos para caracteres das conexões */
+.caractere-conexao {
+  pointer-events: none;
+  user-select: none;
+  font-family: 'Arial', sans-serif;
+}
+
+.conexao-item.autorreflexao {
+  background: rgba(156, 39, 176, 0.1);
+  border-left: 4px solid #9C27B0;
+}
+
+.conexao-item.autorreflexao .direcao {
+  color: #9C27B0 !important;
+}
+
+.info {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.info h1 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-conectar, .btn-cancelar, .btn-remover-todas {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.btn-conectar {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-conectar:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btn-cancelar {
+  background: #ff9800;
+  color: white;
+}
+
+.btn-cancelar:hover {
+  background: #e68900;
+  transform: translateY(-1px);
+}
+
+.btn-remover-todas {
+  background: #f44336;
+  color: white;
+}
+
+.btn-remover-todas:hover {
+  background: #da190b;
+  transform: translateY(-1px);
+}
+
+.status {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.status p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.conexoes-info {
+  margin: 15px 0;
+}
+
+.conexoes-info h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.conexao-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 8px 0;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #4CAF50;
+  gap: 10px;
+}
+
+.conexao-detalhes {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.conexao-controles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.caractere-conexao-texto {
+  font-weight: bold;
+  color: #2196F3;
+  cursor: pointer;
+  padding: 4px 8px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 30px;
+  text-align: center;
+}
+
+.caractere-conexao-texto:hover {
+  background: rgba(33, 150, 243, 0.2);
+  transform: scale(1.05);
+}
+
+.edicao-caractere {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.input-caractere {
+  width: 30px;
+  padding: 4px;
+  border: 1px solid #2196F3;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.btn-confirmar, .btn-cancelar-edicao {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.btn-confirmar {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-confirmar:hover {
+  background: #45a049;
+}
+
+.btn-cancelar-edicao {
+  background: #f44336;
+  color: white;
+}
+
+.btn-cancelar-edicao:hover {
+  background: #da190b;
+}
+
+.btn-remover {
+  background: #ff5722;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.btn-remover:hover {
+  background: #e64a19;
+}
+
+.direcao {
+  font-weight: bold;
+  color: #2196F3 !important;
+  font-size: 0.9rem;
+}
+
+.distancia {
+  font-size: 0.8rem;
+  color: #888 !important;
+  font-style: italic;
+}
+
+.dica {
+  background: rgba(255, 193, 7, 0.2);
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #FFC107;
+  font-size: 0.8rem !important;
+  color: #856404 !important;
+}
+
+.resumo-conexoes {
+  margin: 15px 0;
+  padding: 12px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #2196F3;
+}
+
+.resumo-conexoes h4 {
+  margin: 0 0 8px 0;
+  color: #1976D2;
+  font-size: 1rem;
+}
+
+.resumo-conexoes p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.info button:last-child {
+  background: #6e8efb;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.info button:last-child:hover {
+  background: #5a7dfa;
+  transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .info {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 15px;
+    max-width: none;
+  }
+  
+  .bola {
+    width: 85px;
+    height: 85px;
+  }
+
+  .bola-caractere {
+    font-size: 20px;
+  }
+  
+  .conexao-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .conexao-controles {
+    align-self: flex-end;
+  }
+}

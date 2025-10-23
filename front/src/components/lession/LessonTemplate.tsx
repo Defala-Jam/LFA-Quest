@@ -753,7 +753,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         </div>
 
         <div className="lesson-content">
-          <h2 className="content-heading">📘 Explicação / Teoria</h2>
+          <h2 className="content-heading"></h2>
           {lessonData.explanation ? (
             <p>{lessonData.explanation}</p>
           ) : (

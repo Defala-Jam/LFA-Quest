@@ -174,34 +174,25 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  /* Fundo com contraste para melhor visibilidade */
-  paint-order: stroke;
-  stroke: #0f172a;
-  stroke-width: 3px;
-  stroke-linecap: round;
+  /* Texto branco com borda preta para contraste */
+  fill: #ffffff;
+  stroke: #000000;
+  stroke-width: 2;
   stroke-linejoin: round;
-  /* Sombra para destaque */
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
+  paint-order: stroke;
+  /* Sombra suave para destaque */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
 }
 
-/* Cores específicas para diferentes tipos de conexão */
+/* Cores específicas mantendo a visibilidade */
 .seta-conectavel .caractere-conexao {
-  fill: #ffffff; /* Branco para contraste com o fundo escuro */
-  stroke: #0f172a;
+  fill: #ffffff;
+  stroke: #000000;
 }
 
 .seta-autorreflexao .caractere-conexao {
-  fill: #ffffff; /* Branco para contraste */
-  stroke: #0f172a;
-}
-
-/* Posicionamento melhorado para os caracteres */
-.seta-conectavel text {
-  transform: translate(-50%, -50%);
-}
-
-.seta-autorreflexao text {
-  transform: translate(-50%, -50%);
+  fill: #ffffff;
+  stroke: #000000;
 }
 
 /* Efeito hover nos caracteres */
@@ -268,7 +259,7 @@
 .seta-conectavel.selecionada .caractere-conexao,
 .seta-autorreflexao.selecionada .caractere-conexao {
   fill: #fbbf24; /* Amarelo quando selecionado */
-  stroke: #0f172a;
+  stroke: #000000;
   filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.8));
 }
 
@@ -759,7 +750,6 @@
   }
 }
 
-/* ====== BOTÃO REPETIR LIÇÃO ====== */
 .repeat-button {
   background: transparent;
   border: 2px solid #38bdf8;
@@ -784,5 +774,3 @@
   flex-direction: column;
   align-items: center;
 }
-
-
