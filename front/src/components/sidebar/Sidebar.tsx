@@ -17,7 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onNavigate }) => {
     { id: "leaderboard", label: "Leaderboard", icon: "🏆", path: "/leaderboard" },
     { id: "store", label: "Loja", icon: "🏪", path: "/store" },
     { id: "profile", label: "Perfil", icon: "👤", path: "/profile" },
-    { id: "more", label: "Mais", icon: "⋯", path: "/more" },
+    { id: "more", label: "Estatísticas", icon: "⋯", path: "/more" },
   ]
 
   return (
