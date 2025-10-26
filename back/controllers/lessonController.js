@@ -12,7 +12,7 @@ export const completeLesson = async (req, res) => {
 
     // Calcula recompensas
     const xpEarned = correct_answers * 10;
-    const diamondsEarned = Math.floor(correct_answers / 2);
+    const diamondsEarned = correct_answers * 2;
 
     // Atualiza o banco
     await db.run(

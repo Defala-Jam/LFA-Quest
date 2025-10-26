@@ -32,4 +32,5 @@ const dbPromise = open({
   `);
 })();
 
+
 export default dbPromise;
