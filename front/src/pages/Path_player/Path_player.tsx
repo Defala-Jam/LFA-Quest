@@ -19,6 +19,9 @@ const Path_player: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [isLessonActive, setIsLessonActive] = useState(false);
   const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal");
+  const [newAchievements, setNewAchievements] = useState<any[]>([]);
+  const [showAchievementsPopup, setShowAchievementsPopup] = useState(false);
+
 
   // 🔹 Dados do usuário vindos do backend
   const [userData, setUserData] = useState<any>(null);
@@ -157,10 +160,28 @@ const Path_player: React.FC = () => {
     setCurrentLessonType("normal");
   };
 
-  const handleLessonComplete = () => {
+  const handleLessonComplete = async () => {
     setIsLessonActive(false);
     setCurrentLessonType("normal");
+
+    if (!userData) return; // só faz sentido se o usuário estiver logado
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+      const data = await res.json();
+
+      if (data.newAchievements && data.newAchievements.length > 0) {
+        setNewAchievements(data.newAchievements);
+        setShowAchievementsPopup(true);
+        console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
+      } else {
+        console.log("Nenhuma nova conquista.");
+      }
+    } catch (err) {
+      console.error("Erro ao verificar conquistas:", err);
+    }
   };
+
 
   const handleIncorrectAnswer = () => {
     console.log("Resposta incorreta - fornecer feedback adicional");
@@ -410,6 +431,31 @@ const Path_player: React.FC = () => {
           }
         />
       )}
+      {showAchievementsPopup && (
+        <div className="modal-overlay">
+          <div className="modal achievements-modal">
+            <h2>🏆 Novas Conquistas!</h2>
+            <div className="achievement-list">
+              {newAchievements.map((ach) => (
+                <div key={ach.id} className="achievement-item">
+                  <span className="achievement-icon">{ach.icon || "✨"}</span>
+                  <div className="achievement-info">
+                    <strong>{ach.name}</strong>
+                    <p>{ach.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              className="confirm-btn-jorney"
+              onClick={() => setShowAchievementsPopup(false)}
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

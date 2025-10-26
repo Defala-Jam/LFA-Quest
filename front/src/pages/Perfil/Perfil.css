@@ -110,71 +110,77 @@
    CONQUISTAS (BADGES)
    =========================== */
 .badges-section {
-  margin-bottom: 2rem;
+  margin-top: 1.5rem;
 }
 
 .badges-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 10px;
+  margin-top: 1rem;
 }
 
 .badge-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #334155;
-  border-radius: 12px;
-  transition: background 0.2s ease;
-}
-
-.badge-item:hover {
-  background: #475569;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: transform 0.2s, background 0.3s;
 }
 
 .badge-item.completed {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.badge-item.locked {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.badge-item:hover {
+  transform: translateY(-2px);
 }
 
 .badge-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.badge-item.completed .badge-icon {
-  background: #10b981;
+  font-size: 24px;
 }
 
 .badge-info {
   flex: 1;
+  margin-left: 12px;
 }
 
 .badge-name {
-  color: white;
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+  margin: 0;
+  color: #e2e8f0;
 }
 
 .badge-description {
-  color: #94a3b8;
-  font-size: 0.9rem;
   margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
 }
 
 .badge-progress {
-  color: #94a3b8;
   font-size: 0.9rem;
-  font-weight: bold;
+  color: #cbd5e1;
 }
+
+.badge-item.completed {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.badge-item.locked {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
 
 /* ===========================
    PERSONALIZAÇÃO DE PERFIL

@@ -21,6 +21,16 @@ interface Purchase {
   type: string;
 }
 
+interface Achievement {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  requirement_type: string;
+  requirement_value: number;
+  unlocked: boolean;
+}
+
 const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
   const [activeItem, setActiveItem] = useState("profile");
 
@@ -32,6 +42,9 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
   const [purchasedItems, setPurchasedItems] = useState<Purchase[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [readyToSave, setReadyToSave] = useState(false); // só salva após carregar do backend
+  //conquistas
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+
 
   // Presets (IDs estáveis)
   const avatarPresets = [
@@ -49,7 +62,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
     { id: 3, name: "Purple", gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" },
   ];
 
-  // Buscar dados do usuário + compras
+  // Buscar dados do usuário + compras + conquistas
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -75,6 +88,16 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
         .then((res) => res.json())
         .then((data) => setPurchasedItems(data))
         .catch((err) => console.error("Erro ao carregar compras:", err));
+
+      //conquistas
+      fetch(`http://localhost:5000/api/users/${userId}/achievements`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("🏆 Conquistas carregadas:", data);
+          setAchievements(data);
+        })
+        .catch((err) => console.error("Erro ao carregar conquistas:", err));
+
     } catch (error) {
       console.error("Token inválido:", error);
     }
@@ -145,13 +168,42 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
   };
 
   // Conquistas (exemplo)
-  const badges = [
-    { id: 1, name: "Perfil Básico", description: "Adicionou uma bio ao perfil", progress: "0/3", icon: "🧩", completed: false },
-    { id: 2, name: "O Começo", description: "Resolveu 3 problemas de programação", progress: "3/5", icon: "💡", completed: true },
-    { id: 3, name: "Codificador Diário", description: "Manteve uma sequência de 3 dias", progress: "2/5", icon: "🔥", completed: false },
-  ];
-
+  {/* Conquistas reais */}
+  <div className="widget badges-section">
+    <h2 className="section-title">Conquistas</h2>
+  
+    {achievements.length === 0 ? (
+      <p style={{ color: "#94a3b8", textAlign: "center" }}>
+        Nenhuma conquista registrada ainda.
+      </p>
+    ) : (
+      <div className="badges-list">
+        {achievements.map((ach) => (
+          <div
+            key={ach.id}
+            className={`badge-item ${ach.unlocked ? "completed" : "locked"}`}
+            title={ach.unlocked ? "Conquista desbloqueada!" : "Ainda bloqueada"}
+          >
+            <div className="badge-icon">
+              {ach.unlocked ? ach.icon : "🔒"}
+            </div>
+            <div className="badge-info">
+              <h3 className="badge-name">{ach.name}</h3>
+              <p className="badge-description">{ach.description}</p>
+            </div>
+            <div className="badge-progress">
+              {ach.unlocked ? "✅" : "—"}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+  
+  
   return (
+
+    
     <div className="perfil-layout">
       <Sidebar activeItem={activeItem} onNavigate={navigator} />
 
@@ -174,22 +226,34 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
           <p className="user-subtitle">{userData ? userData.email : ""}</p>
         </div>
 
-        {/* Conquistas */}
-        <div className="widget badges-section">
-          <h2 className="section-title">Conquistas</h2>
-          <div className="badges-list">
-            {badges.map((badge) => (
-              <div key={badge.id} className={`badge-item ${badge.completed ? "completed" : ""}`}>
-                <div className="badge-icon">{badge.icon}</div>
-                <div className="badge-info">
-                  <h3 className="badge-name">{badge.name}</h3>
-                  <p className="badge-description">{badge.description}</p>
-                </div>
-                <div className="badge-progress">{badge.progress}</div>
+        {/* Conquistas reais */}
+          <div className="widget badges-section">
+            <h2 className="section-title">Conquistas</h2>
+            
+            {achievements.length === 0 ? (
+              <p style={{ color: "#94a3b8", textAlign: "center" }}>
+                Nenhuma conquista registrada ainda.
+              </p>
+            ) : (
+              <div className="badges-list">
+                {achievements.map((ach: Achievement) => (
+                  <div
+                    key={ach.id}
+                    className={`badge-item ${ach.unlocked ? "completed" : "locked"}`}
+                    title={ach.unlocked ? "Conquista desbloqueada!" : "Ainda bloqueada"}
+                  >
+                    <div className="badge-icon">{ach.unlocked ? ach.icon : "🔒"}</div>
+                    <div className="badge-info">
+                      <h3 className="badge-name">{ach.name}</h3>
+                      <p className="badge-description">{ach.description}</p>
+                    </div>
+                    <div className="badge-progress">{ach.unlocked ? "✅" : "—"}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        </div>
+          
 
         {/* Personalização */}
         <div className="widget customization-section">

@@ -97,3 +97,86 @@ export const updateUserPreferences = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 🎖️ Retorna todas as conquistas (com status desbloqueado/bloqueado)
+export const getUserAchievements = async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    const allAchievements = await db.all(`SELECT * FROM achievements`);
+    const userAchievements = await db.all(
+      `SELECT achievement_id FROM user_achievements WHERE user_id = ?`,
+      [id]
+    );
+
+    const unlockedIds = userAchievements.map((a) => a.achievement_id);
+
+    const result = allAchievements.map((a) => ({
+      ...a,
+      unlocked: unlockedIds.includes(a.id),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error("❌ Erro ao buscar conquistas:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🧠 Verifica e desbloqueia conquistas do usuário
+export const checkAchievements = async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    // Busca progresso do usuário
+    const user = await db.get(
+      `SELECT xp, streak_count FROM users WHERE id = ?`,
+      [id]
+    );
+
+    // Conta compras feitas
+    const purchases = await db.all(
+      `SELECT COUNT(*) as total FROM purchases WHERE user_id = ?`,
+      [id]
+    );
+    const purchaseCount = purchases[0]?.total ?? 0;
+
+    // Busca conquistas existentes
+    const allAchievements = await db.all(`SELECT * FROM achievements`);
+    const unlocked = await db.all(
+      `SELECT achievement_id FROM user_achievements WHERE user_id = ?`,
+      [id]
+    );
+    const unlockedIds = unlocked.map((a) => a.achievement_id);
+
+    const newlyUnlocked = [];
+
+    for (const a of allAchievements) {
+      if (unlockedIds.includes(a.id)) continue; // já desbloqueada
+
+      let condition = false;
+      if (a.requirement_type === "xp" && user.xp >= a.requirement_value)
+        condition = true;
+      if (a.requirement_type === "streak" && user.streak_count >= a.requirement_value)
+        condition = true;
+      if (a.requirement_type === "purchase_count" && purchaseCount >= a.requirement_value)
+        condition = true;
+
+      if (condition) {
+        await db.run(
+          `INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)`,
+          [id, a.id]
+        );
+        newlyUnlocked.push(a);
+      }
+    }
+
+    res.json({ newAchievements: newlyUnlocked });
+  } catch (err) {
+    console.error("❌ Erro ao checar conquistas:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
