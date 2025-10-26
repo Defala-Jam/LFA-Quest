@@ -10,7 +10,7 @@ export const completeLesson = async (req, res) => {
     const user = await db.get("SELECT * FROM users WHERE id = ?", [user_id]);
     if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
 
-    // Calcula recompensas (ajuste livre)
+    // Calcula recompensas
     const xpEarned = correct_answers * 10;
     const diamondsEarned = Math.floor(correct_answers / 2);
 
@@ -30,6 +30,7 @@ export const completeLesson = async (req, res) => {
       new_diamonds: updated.diamonds,
     });
   } catch (err) {
+    console.error("❌ Erro no completeLesson:", err);
     res.status(500).json({ error: err.message });
   }
 };

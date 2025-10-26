@@ -10,6 +10,9 @@ import path from "path";
 import dotenv from "dotenv";
 import lessonRoutes from "./routes/lessonRoutes.js";
 
+
+
+
 // ⚠️ Remover daqui (estava antes da criação do app)
 
 // Utilidades e configuração do .env

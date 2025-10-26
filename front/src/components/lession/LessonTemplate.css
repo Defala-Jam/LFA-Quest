@@ -821,3 +821,67 @@
 }
 
 
+.summary-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #1a2332;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.summary-card h1 {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.summary-card h2 {
+  font-size: 20px;
+  color: #a5b4fc;
+  margin-bottom: 16px;
+}
+
+.summary-card p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.summary-card .continue-button {
+  margin-top: 20px;
+  background: #22c55e;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease;
+}
+
+.summary-card .continue-button:hover {
+  background: #16a34a;
+}
+
+.reward-section {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.reward-text {
+  font-size: 18px;
+  margin: 4px 0;
+  color: #facc15; /* dourado suave */
+  font-weight: 600;
+}

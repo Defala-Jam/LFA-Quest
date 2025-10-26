@@ -1,24 +1,25 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import "./LessonTemplate.css"
-import AutomatonLesson from "./AutomatonLession"
-import type { Estado, Conexao } from "./AutomatonLession"
+import React, { useState, useEffect } from "react";
+import "./LessonTemplate.css";
+import AutomatonLesson from "./AutomatonLession";
+import type { Estado, Conexao } from "./AutomatonLession";
+import axios from "axios";
 
 interface LessonData {
-  title: string
-  question: string
-  alternatives: string[]
-  correctAnswer: number
-  explanation?: string
+  title: string;
+  question: string;
+  alternatives: string[];
+  correctAnswer: number;
+  explanation?: string;
 }
 
 interface LessonTemplateProps {
-  lessonData: LessonData
-  onComplete: () => void
-  onExit: () => void
-  onIncorrect: () => void
-  isAutomaton?: boolean
+  lessonData: LessonData;
+  onComplete: () => void;
+  onExit: () => void;
+  onIncorrect: () => void;
+  isAutomaton?: boolean;
 }
 
 const LessonTemplate: React.FC<LessonTemplateProps> = ({
@@ -26,36 +27,123 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   onComplete,
   onExit,
   onIncorrect,
-  isAutomaton = false
+  isAutomaton = false,
 }) => {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [showSummary, setShowSummary] = useState(false);
+  const [answers, setAnswers] = useState<boolean[]>([]);
+  const [lessonResult, setLessonResult] = useState<{ diamonds: number; xp: number } | null>(null);
+
+  useEffect(() => {
+    setStartTime(Date.now());
+    setShowSummary(false);
+    setAnswers([]);
+    setLessonResult(null);
+  }, [lessonData]);
+
+  const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {};
+
+  // 📤 Envia o resultado da lição ao backend (sem autenticação)
+  const handleLessonComplete = async (correctAnswers: number, totalQuestions: number) => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/lesson/complete", {
+        user_id: user.id,
+        correct_answers: correctAnswers,
+        total_questions: totalQuestions,
+      });
+
+      const { diamonds_earned, xp_earned, new_xp, new_diamonds } = response.data;
+
+      // Atualiza localStorage com os novos totais
+      const updatedUser = {
+        ...user,
+        xp: new_xp,
+        diamonds: new_diamonds,
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Guarda o resultado da lição para exibir no resumo
+      setLessonResult({ diamonds: diamonds_earned, xp: xp_earned });
+    } catch (err) {
+      console.error("❌ Erro ao registrar lição:", err);
+    }
+  };
 
   const handleAnswerSelect = (index: number) => {
-    if (!isSubmitted) setSelectedAnswer(index)
-  }
+    if (!isSubmitted) setSelectedAnswer(index);
+  };
 
   const handleSubmit = () => {
-    if (selectedAnswer === null) return
-    setIsSubmitted(true)
-    const correct = selectedAnswer === lessonData.correctAnswer
-    setIsCorrect(correct)
+    if (selectedAnswer === null) return;
+    setIsSubmitted(true);
+    const correct = selectedAnswer === lessonData.correctAnswer;
+    setIsCorrect(correct);
+  };
+
+  const handleContinue = async () => {
+    if (isCorrect) {
+      setAnswers((prev) => [...prev, true]);
+      await handleLessonComplete(1, 1);
+    } else {
+      setAnswers((prev) => [...prev, false]);
+      await handleLessonComplete(0, 1);
+    }
+    setShowSummary(true);
+  };
+
+  // 🏁 Tela de resumo da lição
+  if (showSummary) {
+    const total = answers.length || 1;
+    const correct = answers.filter((a) => a).length;
+    const wrong = total - correct;
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+
+    return (
+      <div className="summary-container">
+        <div className="summary-card">
+          <h1>🎉 Lição Concluída!</h1>
+          <h2>{lessonData.title}</h2>
+
+          <p>
+            Você respondeu <b>{total}</b> pergunta{total > 1 ? "s" : ""} em{" "}
+            <b>{timeTaken}</b> segundos.
+          </p>
+          <p>
+            ✅ Acertos: <b>{correct}</b> &nbsp;&nbsp; ❌ Erros: <b>{wrong}</b>
+          </p>
+
+          {/* Exibe XP e diamantes ganhos */}
+          {lessonResult !== null && (
+            <div className="reward-section">
+              <p className="reward-text">
+                💎 Ganhou <b>{lessonResult.diamonds}</b> diamantes
+              </p>
+              <p className="reward-text">
+                ⚡ Ganhou <b>{lessonResult.xp}</b> XP
+              </p>
+            </div>
+          )}
+
+          <button
+            className="continue-button"
+            onClick={() => {
+              setShowSummary(false);
+              onComplete();
+            }}
+          >
+            Continuar →
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  const handleContinue = () => {
-    if (isCorrect) onComplete()
-    else onIncorrect()
-
-    setSelectedAnswer(null)
-    setIsCorrect(null)
-    setIsSubmitted(false)
-  }
-
-  // Callback para receber mudanças do autômato
-  const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
-  }
-
+  // 🧠 Tela da lição em andamento
   return (
     <div className="lesson-container">
       <div className="lesson-left">
@@ -71,9 +159,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
           {lessonData.explanation ? (
             <p>{lessonData.explanation}</p>
           ) : (
-            <p style={{ color: "#64748b" }}>
-              Nenhuma explicação disponível para esta pergunta.
-            </p>
+            <p style={{ color: "#64748b" }}>Nenhuma explicação disponível para esta pergunta.</p>
           )}
         </div>
       </div>
@@ -103,9 +189,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
                   onClick={() => handleAnswerSelect(i)}
                   disabled={isSubmitted}
                 >
-                  <span className="alternative-letter">
-                    {String.fromCharCode(65 + i)}
-                  </span>
+                  <span className="alternative-letter">{String.fromCharCode(65 + i)}</span>
                   <span className="alternative-text">{alt}</span>
                 </button>
               ))}
@@ -113,13 +197,9 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
 
             {isSubmitted && (
               <div
-                className={`feedback ${
-                  isCorrect ? "correct-feedback" : "incorrect-feedback"
-                }`}
+                className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}
               >
-                {isCorrect
-                  ? " Parabéns! Resposta correta!"
-                  : "Resposta incorreta!"}
+                {isCorrect ? "🎉 Parabéns! Resposta correta!" : "💭 Resposta incorreta!"}
               </div>
             )}
 
@@ -142,7 +222,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LessonTemplate
+export default LessonTemplate;
