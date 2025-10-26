@@ -112,6 +112,7 @@ const validarAutomato = () => {
 
 const handleValidar = () => {
   const conexoesValidadas = validarAutomato();
+  return conexoesValidadas
 };
   const atribuirRef = (id: number) => (el: HTMLDivElement | null) => {
     estadoRefs.current[id] = el;
@@ -313,20 +314,27 @@ const handleValidar = () => {
         const clicado = prev.find(e => e.id === id);
         if (!clicado) return prev;
       
-        // 🔁 Alternância entre estados: normal → inicial → final → normal
-        if (clicado.isInicial) {
-          // Se já é inicial, torna final
+        // 🔁 Alternância entre estados: normal → inicial → final → inicial+fim → normal
+        if (clicado.isInicial && !clicado.isFinal) {
+          // Se já é inicial, torna inicial+fim
           return prev.map(e =>
             e.id === id
-              ? { ...e, isInicial: false, isFinal: true }
+              ? { ...e, isFinal: true }
               : e
           );
-        } else if (clicado.isFinal) {
-          // Se já é final, remove ambos
+        } else if (clicado.isInicial && clicado.isFinal) {
+          // Se já é inicial+fim, remove ambos
           return prev.map(e =>
             e.id === id
-              ? { ...e, isFinal: false }
+              ? { ...e, isInicial: false, isFinal: false }
               : e
+          );
+        } else if (!clicado.isInicial && clicado.isFinal) {
+          // Se já é final, torna inicial+fim
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isInicial: true }
+              : { ...e, isInicial: false } // Remove inicial de outros estados
           );
         } else {
           // Se é normal, torna inicial e remove inicial de todos os outros
@@ -338,7 +346,7 @@ const handleValidar = () => {
         }
       });
     };
-  
+
     // Clique simples para modo conectar
     if (modoConectar) {
       if (estadoSelecionado === null) {
@@ -364,7 +372,7 @@ const handleValidar = () => {
             ativa: true,
             direcao: `${id}→${id}`,
             tipo: 'autorreflexao',
-            caractere: 'ε'
+            caractere: 'A'
           };
         
           setConexoes(prev => [...prev, novaConexao]);
@@ -387,7 +395,7 @@ const handleValidar = () => {
             ativa: true,
             direcao: `${estadoSelecionado}→${id}`,
             tipo: 'normal',
-            caractere: 'a'
+            caractere: 'A'
           };
         
           setConexoes(prev => [...prev, novaConexao]);
@@ -411,66 +419,88 @@ const handleValidar = () => {
     if (!estadoDe || !estadoPara || !estadoRefs.current[deId] || !estadoRefs.current[paraId]) {
       return null;
     }
-
+  
     const estadoDeRect = estadoRefs.current[deId].getBoundingClientRect();
     const estadoParaRect = estadoRefs.current[paraId].getBoundingClientRect();
-
+  
     const centroEstadoDe = {
       x: estadoDe.posicao.x + estadoDeRect.width / 2,
       y: estadoDe.posicao.y + estadoDeRect.height / 2
     };
-
+  
     const centroEstadoPara = {
       x: estadoPara.posicao.x + estadoParaRect.width / 2,
       y: estadoPara.posicao.y + estadoParaRect.height / 2
     };
-
+  
     const dx = centroEstadoPara.x - centroEstadoDe.x;
     const dy = centroEstadoPara.y - centroEstadoDe.y;
     const distancia = Math.sqrt(dx * dx + dy * dy);
-
+  
     if (distancia === 0) return null;
-
+  
     const direcaoX = dx / distancia;
     const direcaoY = dy / distancia;
-
+  
     const perpendicularX = -direcaoY;
     const perpendicularY = direcaoX;
-
+  
     const raioEstado = estadoDeRect.width / 2;
     
-    const espacamento = Math.abs(offset) > 0 ? 15 : 0;
+    // Aumentar o espaçamento para conexões bidirecionais
+    const espacamento = Math.abs(offset) > 0 ? 25 : 0;
     
     const inicio = {
       x: centroEstadoDe.x + direcaoX * raioEstado + perpendicularX * espacamento * Math.sign(offset),
       y: centroEstadoDe.y + direcaoY * raioEstado + perpendicularY * espacamento * Math.sign(offset)
     };
-
+  
     const fim = {
       x: centroEstadoPara.x - direcaoX * raioEstado + perpendicularX * espacamento * Math.sign(offset),
       y: centroEstadoPara.y - direcaoY * raioEstado + perpendicularY * espacamento * Math.sign(offset)
     };
-
+  
     const meio = {
-      x: (inicio.x + fim.x) / 2 + perpendicularY * 10,
-      y: (inicio.y + fim.y) / 2 - perpendicularX * 10
+      x: (inicio.x + fim.x) / 2,
+      y: (inicio.y + fim.y) / 2 
     };
-
+  
     const tamanhoSeta = 12;
     const anguloSeta = Math.PI / 6;
-
+  
     const ponta1 = {
       x: fim.x - direcaoX * tamanhoSeta + direcaoY * tamanhoSeta * Math.tan(anguloSeta),
       y: fim.y - direcaoY * tamanhoSeta - direcaoX * tamanhoSeta * Math.tan(anguloSeta)
     };
-
+  
     const ponta2 = {
       x: fim.x - direcaoX * tamanhoSeta - direcaoY * tamanhoSeta * Math.tan(anguloSeta),
       y: fim.y - direcaoY * tamanhoSeta + direcaoX * tamanhoSeta * Math.tan(anguloSeta)
     };
-
+  
     return { inicio, fim, ponta1, ponta2, direcaoX, direcaoY, meio };
   };
+  
+  // Nova função para detectar conexões bidirecionais e calcular offsets
+  const getOffsetForConnection = (conexao: any, index: number) => {
+    const conexoesEntre = conexoes.filter(c => 
+      (c.de === conexao.de && c.para === conexao.para) ||
+      (c.de === conexao.para && c.para === conexao.de)
+    );
+  
+    const count = conexoesEntre.length;
+    const i = conexoesEntre.findIndex(c => c.id === conexao.id);
+  
+    // offset simétrico (distribui uniformemente)
+    const baseOffset = i * 2 - count + 1;
+  
+    // 🔁 Se for conexão reversa (ex: A→B vs B→A), inverte o sinal
+    const isReverse = conexao.de > conexao.para; // pode ajustar conforme seu id cresce
+    const offset = isReverse ? -baseOffset : baseOffset;
+  
+    return offset 
+  };
+
 
   const calcularPontosAutorreflexao = (estadoId: number) => {
     const estado = estados.find(e => e.id === estadoId);
@@ -597,16 +627,6 @@ const handleValidar = () => {
       >
         <defs>
           <marker
-            id="arrowhead"
-            markerWidth="8"
-            markerHeight="6"
-            refX="6"
-            refY="3"
-            orient="auto"
-          >
-            <polygon points="0 0, 8 3, 0 6" fill="#4CAF50" />
-          </marker>
-          <marker
             id="arrowhead-autorreflexao"
             markerWidth="8"
             markerHeight="6"
@@ -658,52 +678,54 @@ const handleValidar = () => {
                 </text>
               </g>
             );
-          } else {
-            const pontos = calcularPontosSetaNormal(conexao.de, conexao.para);
-            if (!pontos) return null;
-
-            return (
-              <g 
-                key={conexao.id} 
-                className={`seta-conectavel ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
-                onClick={() => handleCliqueConexao(conexao.id)}
-                onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
-                style={{ cursor: 'pointer' }}
-              >
-                <line
-                  x1={pontos.inicio.x}
-                  y1={pontos.inicio.y}
-                  x2={pontos.fim.x}
-                  y2={pontos.fim.y}
-                  stroke="#4CAF50"
-                  strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
-                  markerEnd="url(#arrowhead)"
-                />
-                <polygon
-                  points={`
-                    ${pontos.fim.x},${pontos.fim.y}
-                    ${pontos.ponta1.x},${pontos.ponta1.y}
-                    ${pontos.ponta2.x},${pontos.ponta2.y}
-                  `}
-                  fill="#4CAF50"
-                />
-                <text
-                  x={pontos.meio.x}
-                  y={pontos.meio.y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="caractere-conexao"
-                  fontSize="14"
-                  fontWeight="bold"
-                  fill="#4CAF50"
+            
+            } else {
+              const offset = getOffsetForConnection(conexao, conexao.de); // 🟩 AQUI pegamos o offset calculado
+              const pontos = calcularPontosSetaNormal(conexao.de, conexao.para, offset); // 🟩 e aplicamos aqui
+              if (!pontos) return null;
+            
+              return (
+                <g 
+                  key={conexao.id} 
+                  className={`seta-conectavel ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
+                  onClick={() => handleCliqueConexao(conexao.id)}
+                  onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
                   style={{ cursor: 'pointer' }}
                 >
-                  {conexao.caractere}
-                </text>
-              </g>
-            );
-          }
-        })}
+                  <line
+                    x1={pontos.inicio.x}
+                    y1={pontos.inicio.y}
+                    x2={pontos.fim.x}
+                    y2={pontos.fim.y}
+                    stroke="#4CAF50"
+                    strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
+                    markerEnd="url(#arrowhead)"
+                  />
+                  <polygon
+                    points={`
+                      ${pontos.fim.x},${pontos.fim.y}
+                      ${pontos.ponta1.x},${pontos.ponta1.y}
+                      ${pontos.ponta2.x},${pontos.ponta2.y}
+                    `}
+                    fill="#4CAF50"
+                  />
+                  <text
+                    x={pontos.meio.x}
+                    y={pontos.meio.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="caractere-conexao"
+                    fontSize="14"
+                    fontWeight="bold"
+                    fill="#4CAF50"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {conexao.caractere}
+                  </text>
+                </g>
+              );
+            }
+          })}
       </svg>
 
       {estados.map(estado => (
