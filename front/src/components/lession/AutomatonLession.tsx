@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import './AutomatonLesson.css';
+"use client"
 
+import React, { useState, useEffect, useRef } from "react"
+
+// Interfaces para o componente AutomatonLesson
 interface Posicao {
   x: number;
   y: number;
@@ -11,7 +13,7 @@ interface Offset {
   y: number;
 }
 
-interface Bola {
+export interface Estado {
   id: number;
   posicao: Posicao;
   posicaoAlvo: Posicao;
@@ -19,10 +21,12 @@ interface Bola {
   offset: Offset;
   conectada: boolean;
   selecionada: boolean;
-  caractere: string;
+  nome: string;
+  isInicial: boolean;
+  isFinal: boolean;
 }
 
-interface Conexao {
+export interface Conexao {
   id: string;
   de: number;
   para: number;
@@ -32,59 +36,89 @@ interface Conexao {
   caractere: string;
 }
 
-const BolaArrastavel = () => {
+interface AutomatonLessonProps {
+  onStateChange?: (estados: Estado[], conexoes: Conexao[]) => void;
+  onValidation?: (isValid: boolean, message: string, details: ValidationDetails) => void;
+}
+
+interface ValidationDetails {
+  estadosIniciais: Estado[];
+  estadosFinais: Estado[];
+  conexoesValidas: Conexao[];
+  conexoesInvalidas: Conexao[];
+  mensagens: string[];
+}
+
+const AutomatonLesson: React.FC<AutomatonLessonProps> = ({ 
+  onStateChange, 
+  onValidation 
+}) => {
   const VELOCIDADE_SUAVIZACAO = 0.3;
 
-  const [bolas, setBolas] = useState<Bola[]>([
-    {
-      id: 2,
-      posicao: { x: 0, y: 0 },
-      posicaoAlvo: { x: 0, y: 0 },
-      arrastando: false,
-      offset: { x: 0, y: 0 },
-      conectada: false,
-      selecionada: false,
-      caractere: 'B'
-    },
-    {
-      id: 3,
-      posicao: { x: 0, y: 0 },
-      posicaoAlvo: { x: 0, y: 0 },
-      arrastando: false,
-      offset: { x: 0, y: 0 },
-      conectada: false,
-      selecionada: false,
-      caractere: 'C' 
-    },
-    {
-      id: 4,
-      posicao: { x: 0, y: 0 },
-      posicaoAlvo: { x: 0, y: 0 },
-      arrastando: false,
-      offset: { x: 0, y: 0 },
-      conectada: false,
-      selecionada: false,
-      caractere: 'D' 
-    }
+  // Definindo os 8 estados possíveis
+  const [estados, setEstados] = useState<Estado[]>([
+    { id: 1, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1", isInicial: false, isFinal: false },
+    { id: 2, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "2", isInicial: false, isFinal: false },
+    { id: 3, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "3", isInicial: false, isFinal: false },
+    { id: 4, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,2", isInicial: false, isFinal: false },
+    { id: 5, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,3", isInicial: false, isFinal: false },
+    { id: 6, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "2,3", isInicial: false, isFinal: false },
+    { id: 7, posicao: { x: 0, y: 0 }, posicaoAlvo: { x: 0, y: 0 }, arrastando: false, offset: { x: 0, y: 0 }, conectada: false, selecionada: false, nome: "1,2,3", isInicial: false, isFinal: false }
   ]);
 
   const [conexoes, setConexoes] = useState<Conexao[]>([]);
   const [modoConectar, setModoConectar] = useState<boolean>(false);
-  const [bolaSelecionada, setBolaSelecionada] = useState<number | null>(null);
+  const [estadoSelecionado, setEstadoSelecionado] = useState<number | null>(null);
   const [editandoConexao, setEditandoConexao] = useState<string | null>(null);
   const [novoCaractere, setNovoCaractere] = useState<string>('');
+  const [conexaoSelecionada, setConexaoSelecionada] = useState<string | null>(null);
+  const [resultadoValidacao, setResultadoValidacao] = useState<{
+    isValid: boolean;
+    message: string;
+    details: ValidationDetails;
+  } | null>(null);
   
-  const bolaRefs = useRef<{[key: number]: HTMLDivElement | null}>({});
+  const estadoRefs = useRef<{[key: number]: HTMLDivElement | null}>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const animationFrameRef = useRef<number>(0);
 
+  // Notificar mudanças de estado
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange(estados, conexoes);
+    }
+  }, [estados, conexoes, onStateChange]);
+
+// Função de validação
+const validarAutomato = () => {
+  // Ordenar conexões por estado de origem e destino
+  const conexoesOrdenadas = [...conexoes].sort((a, b) => {
+    if (a.de !== b.de) return a.de - b.de;
+    return a.para - b.para;
+  });
+
+  // Formatar no estilo desejado
+  const conexoesFormatadas = conexoesOrdenadas.map(conexao => ({
+    de: conexao.de,
+    para: conexao.para,
+    caractere: conexao.caractere
+  }));
+
+  console.log("Conexões em ordem:", conexoesFormatadas);
+  
+  return conexoesFormatadas;
+};
+
+const handleValidar = () => {
+  const conexoesValidadas = validarAutomato();
+};
   const atribuirRef = (id: number) => (el: HTMLDivElement | null) => {
-    bolaRefs.current[id] = el;
+    estadoRefs.current[id] = el;
   };
 
   useEffect(() => {
-    posicionarBolas();
+    posicionarEstados();
     
     const animar = () => {
       atualizarSuavizacao();
@@ -98,45 +132,62 @@ const BolaArrastavel = () => {
     };
   }, []);
 
+  // Adicionar listener para tecla Delete
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Delete') {
+        if (conexaoSelecionada) {
+          removerConexao(conexaoSelecionada);
+          setConexaoSelecionada(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [conexaoSelecionada]);
+
   const atualizarSuavizacao = () => {
-    setBolas(prev => prev.map(bola => {
-      if (!bola.arrastando) {
-        const dx = bola.posicaoAlvo.x - bola.posicao.x;
-        const dy = bola.posicaoAlvo.y - bola.posicao.y;
+    setEstados(prev => prev.map(estado => {
+      if (!estado.arrastando) {
+        const dx = estado.posicaoAlvo.x - estado.posicao.x;
+        const dy = estado.posicaoAlvo.y - estado.posicao.y;
         
         if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
-          return { ...bola, posicao: { ...bola.posicaoAlvo } };
+          return { ...estado, posicao: { ...estado.posicaoAlvo } };
         }
         
-        const novaX = bola.posicao.x + dx * VELOCIDADE_SUAVIZACAO;
-        const novaY = bola.posicao.y + dy * VELOCIDADE_SUAVIZACAO;
+        const novaX = estado.posicao.x + dx * VELOCIDADE_SUAVIZACAO;
+        const novaY = estado.posicao.y + dy * VELOCIDADE_SUAVIZACAO;
         
-        return { ...bola, posicao: { x: novaX, y: novaY } };
+        return { ...estado, posicao: { x: novaX, y: novaY } };
       }
-      return bola;
+      return estado;
     }));
   };
 
-  const posicionarBolas = () => {
+  const posicionarEstados = () => {
     if (containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
-      const bolaWidth = 85;
-      const bolaHeight = 85;
+      const estadoWidth = 85;
+      const estadoHeight = 85;
       
-      const colunas = 2;
-      const linhas = Math.ceil(bolas.length / colunas);
+      const colunas = 3;
+      const linhas = Math.ceil(estados.length / colunas);
       const espacamentoX = containerRect.width / (colunas + 1);
       const espacamentoY = containerRect.height / (linhas + 1);
       
-      setBolas(prev => prev.map((bola, index) => {
+      setEstados(prev => prev.map((estado, index) => {
         const coluna = index % colunas;
         const linha = Math.floor(index / colunas);
         
-        const x = espacamentoX * (coluna + 1) - bolaWidth / 2;
-        const y = espacamentoY * (linha + 1) - bolaHeight / 2;
+        const x = espacamentoX * (coluna + 1) - estadoWidth / 2;
+        const y = espacamentoY * (linha + 1) - estadoHeight / 2;
         
         return {
-          ...bola,
+          ...estado,
           posicao: { x, y },
           posicaoAlvo: { x, y }
         };
@@ -150,8 +201,8 @@ const BolaArrastavel = () => {
       return;
     }
 
-    setBolas(prev => prev.map(bola => 
-      bola.id === id ? { ...bola, arrastando: true } : bola
+    setEstados(prev => prev.map(estado => 
+      estado.id === id ? { ...estado, arrastando: true } : estado
     ));
     
     const tipoEvento = e.type.includes('touch') ? 'touch' : 'mouse';
@@ -163,14 +214,14 @@ const BolaArrastavel = () => {
       ? (e as React.TouchEvent).touches[0].clientY 
       : (e as React.MouseEvent).clientY;
     
-    const bolaRef = bolaRefs.current[id];
-    if (bolaRef) {
-      const bolaRect = bolaRef.getBoundingClientRect();
-      const offsetX = clientX - bolaRect.left;
-      const offsetY = clientY - bolaRect.top;
+    const estadoRef = estadoRefs.current[id];
+    if (estadoRef) {
+      const estadoRect = estadoRef.getBoundingClientRect();
+      const offsetX = clientX - estadoRect.left;
+      const offsetY = clientY - estadoRect.top;
       
-      setBolas(prev => prev.map(bola => 
-        bola.id === id ? { ...bola, offset: { x: offsetX, y: offsetY } } : bola
+      setEstados(prev => prev.map(estado => 
+        estado.id === id ? { ...estado, offset: { x: offsetX, y: offsetY } } : estado
       ));
     }
 
@@ -178,8 +229,8 @@ const BolaArrastavel = () => {
   };
 
   const arrastar = (e: MouseEvent | TouchEvent) => {
-    const bolaArrastando = bolas.find(bola => bola.arrastando);
-    if (!bolaArrastando) return;
+    const estadoArrastando = estados.find(estado => estado.arrastando);
+    if (!estadoArrastando) return;
 
     const tipoEvento = e.type.includes('touch') ? 'touch' : 'mouse';
     const clientX = tipoEvento === 'touch' 
@@ -190,39 +241,39 @@ const BolaArrastavel = () => {
       ? (e as TouchEvent).touches[0].clientY 
       : (e as MouseEvent).clientY;
 
-    if (containerRef.current && bolaRefs.current[bolaArrastando.id]) {
+    if (containerRef.current && estadoRefs.current[estadoArrastando.id]) {
       const containerRect = containerRef.current.getBoundingClientRect();
-      const bolaRect = bolaRefs.current[bolaArrastando.id]!.getBoundingClientRect();
+      const estadoRect = estadoRefs.current[estadoArrastando.id]!.getBoundingClientRect();
 
-      let novaX = clientX - bolaArrastando.offset.x - containerRect.left;
-      let novaY = clientY - bolaArrastando.offset.y - containerRect.top;
+      let novaX = clientX - estadoArrastando.offset.x - containerRect.left;
+      let novaY = clientY - estadoArrastando.offset.y - containerRect.top;
 
-      const maxX = containerRect.width - bolaRect.width;
-      const maxY = containerRect.height - bolaRect.height;
+      const maxX = containerRect.width - estadoRect.width;
+      const maxY = containerRect.height - estadoRect.height;
 
       novaX = Math.max(0, Math.min(novaX, maxX));
       novaY = Math.max(0, Math.min(novaY, maxY));
 
-      setBolas(prev => prev.map(bola => 
-        bola.id === bolaArrastando.id 
+      setEstados(prev => prev.map(estado => 
+        estado.id === estadoArrastando.id 
           ? { 
-              ...bola, 
+              ...estado, 
               posicao: { x: novaX, y: novaY },
               posicaoAlvo: { x: novaX, y: novaY }
             }
-          : bola
+          : estado
       ));
     }
   };
 
   const pararArraste = () => {
-    setBolas(prev => prev.map(bola => ({ ...bola, arrastando: false })));
+    setEstados(prev => prev.map(estado => ({ ...estado, arrastando: false })));
   };
 
   useEffect(() => {
-    const algumaBolaArrastando = bolas.some(bola => bola.arrastando);
+    const algumEstadoArrastando = estados.some(estado => estado.arrastando);
     
-    if (algumaBolaArrastando) {
+    if (algumEstadoArrastando) {
       document.addEventListener('mousemove', arrastar);
       document.addEventListener('mouseup', pararArraste);
       document.addEventListener('touchmove', arrastar);
@@ -240,168 +291,142 @@ const BolaArrastavel = () => {
       document.removeEventListener('touchmove', arrastar);
       document.removeEventListener('touchend', pararArraste);
     };
-  }, [bolas]);
+  }, [estados]);
 
+  // Mecânica de Conexões
   const ativarModoConectar = () => {
     setModoConectar(true);
-    setBolaSelecionada(null);
-    setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
+    setEstadoSelecionado(null);
+    setEstados(prev => prev.map(estado => ({ ...estado, selecionada: false })));
   };
 
   const desativarModoConectar = () => {
     setModoConectar(false);
-    setBolaSelecionada(null);
-    setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
+    setEstadoSelecionado(null);
+    setEstados(prev => prev.map(estado => ({ ...estado, selecionada: false })));
   };
 
-  const clicarBola = (id: number) => {
-    if (!modoConectar) return;
-
-    if (bolaSelecionada === null) {
-      setBolaSelecionada(id);
-      setBolas(prev => prev.map(bola => 
-        bola.id === id ? { ...bola, selecionada: true } : { ...bola, selecionada: false }
-      ));
-    } else if (bolaSelecionada === id) {
-      const conexaoId = `autorreflexao-${id}`;
+  const clicarEstado = (id: number) => {
+    // Duplo clique para definir estado inicial/final
+    const handleDuploClique = () => {
+      setEstados(prev => {
+        const clicado = prev.find(e => e.id === id);
+        if (!clicado) return prev;
       
-      const conexaoExistente = conexoes.find(conexao => 
-        conexao.id === conexaoId
-      );
-
-      if (!conexaoExistente) {
-        const novaConexao: Conexao = {
-          id: conexaoId,
-          de: id,
-          para: id,
-          ativa: true,
-          direcao: `${id}→${id}`,
-          tipo: 'autorreflexao',
-          caractere: 'ε'
-        };
-        
-        setConexoes(prev => [...prev, novaConexao]);
-        setBolas(prev => prev.map(bola => 
-          bola.id === id ? { ...bola, conectada: true, selecionada: false } : bola
-        ));
-      }
-
-      setBolaSelecionada(null);
-      setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
-      setModoConectar(false);
-    } else {
-      const conexaoId = `conexao-${bolaSelecionada}-${id}`;
-      
-      const conexaoExistente = conexoes.find(conexao => 
-        conexao.id === conexaoId
-      );
-
-      if (!conexaoExistente) {
-        const novaConexao: Conexao = {
-          id: conexaoId,
-          de: bolaSelecionada,
-          para: id,
-          ativa: true,
-          direcao: `${bolaSelecionada}→${id}`,
-          tipo: 'normal',
-          caractere: 'A'
-        };
-        
-        setConexoes(prev => [...prev, novaConexao]);
-        setBolas(prev => prev.map(bola => 
-          (bola.id === bolaSelecionada || bola.id === id) 
-            ? { ...bola, conectada: true, selecionada: false } 
-            : bola
-        ));
-      }
-
-      setBolaSelecionada(null);
-      setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
-      setModoConectar(false);
-    }
-  };
-
-  const iniciarEdicaoConexao = (conexaoId: string, caractereAtual: string) => {
-    setEditandoConexao(conexaoId);
-    setNovoCaractere(caractereAtual);
-  };
-
-  const confirmarEdicaoConexao = () => {
-    if (editandoConexao && novoCaractere.trim() !== '') {
-      setConexoes(prev => prev.map(conexao => 
-        conexao.id === editandoConexao 
-          ? { ...conexao, caractere: novoCaractere.trim() }
-          : conexao
-      ));
-      setEditandoConexao(null);
-      setNovoCaractere('');
-    }
-  };
-
-  const cancelarEdicaoConexao = () => {
-    setEditandoConexao(null);
-    setNovoCaractere('');
-  };
-
-  const removerConexao = (conexaoId: string) => {
-    const conexao = conexoes.find(c => c.id === conexaoId);
-    if (conexao) {
-      setConexoes(prev => prev.filter(c => c.id !== conexaoId));
-      
-      const conexoesRestantesDe = conexoes.filter(c => 
-        c.id !== conexaoId && (c.de === conexao.de || c.para === conexao.de)
-      );
-      
-      const conexoesRestantesPara = conexao.tipo === 'normal' ? 
-        conexoes.filter(c => 
-          c.id !== conexaoId && (c.de === conexao.para || c.para === conexao.para)
-        ) : [];
-
-      setBolas(prev => prev.map(bola => {
-        if (bola.id === conexao.de) {
-          return { ...bola, conectada: conexoesRestantesDe.length > 0 };
-        } else if (conexao.tipo === 'normal' && bola.id === conexao.para) {
-          return { ...bola, conectada: conexoesRestantesPara.length > 0 };
+        // 🔁 Alternância entre estados: normal → inicial → final → normal
+        if (clicado.isInicial) {
+          // Se já é inicial, torna final
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isInicial: false, isFinal: true }
+              : e
+          );
+        } else if (clicado.isFinal) {
+          // Se já é final, remove ambos
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isFinal: false }
+              : e
+          );
+        } else {
+          // Se é normal, torna inicial e remove inicial de todos os outros
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isInicial: true, isFinal: false }
+              : { ...e, isInicial: false }
+          );
         }
-        return bola;
-      }));
+      });
+    };
+  
+    // Clique simples para modo conectar
+    if (modoConectar) {
+      if (estadoSelecionado === null) {
+        setEstadoSelecionado(id);
+        setEstados(prev =>
+          prev.map(estado =>
+            estado.id === id
+              ? { ...estado, selecionada: true }
+              : { ...estado, selecionada: false }
+          )
+        );
+      } else if (estadoSelecionado === id) {
+        // Autorreflexão
+        const conexaoId = `autorreflexao-${id}`;
+      
+        const conexaoExistente = conexoes.find(conexao => conexao.id === conexaoId);
+      
+        if (!conexaoExistente) {
+          const novaConexao: Conexao = {
+            id: conexaoId,
+            de: id,
+            para: id,
+            ativa: true,
+            direcao: `${id}→${id}`,
+            tipo: 'autorreflexao',
+            caractere: 'ε'
+          };
+        
+          setConexoes(prev => [...prev, novaConexao]);
+          desativarModoConectar();
+        }
+      
+        setEstadoSelecionado(null);
+        setModoConectar(false);
+      } else {
+        // Conexão normal
+        const conexaoId = `conexao-${estadoSelecionado}-${id}`;
+      
+        const conexaoExistente = conexoes.find(conexao => conexao.id === conexaoId);
+      
+        if (!conexaoExistente) {
+          const novaConexao: Conexao = {
+            id: conexaoId,
+            de: estadoSelecionado,
+            para: id,
+            ativa: true,
+            direcao: `${estadoSelecionado}→${id}`,
+            tipo: 'normal',
+            caractere: 'a'
+          };
+        
+          setConexoes(prev => [...prev, novaConexao]);
+        }
+      
+        setEstadoSelecionado(null);
+        setModoConectar(false);
+        desativarModoConectar();
+      }
+    } else {
+      // Clique simples normal - não faz nada especial
+      handleDuploClique();
     }
   };
 
-  const removerTodasConexoes = () => {
-    setConexoes([]);
-    setBolas(prev => prev.map(bola => ({ ...bola, conectada: false })));
-  };
-
-  const existeConexao = (deId: number, paraId: number): boolean => {
-    return conexoes.some(conexao => 
-      conexao.de === deId && conexao.para === paraId
-    );
-  };
-
+  // Funções auxiliares para cálculos de conexões
   const calcularPontosSetaNormal = (deId: number, paraId: number, offset: number = 0) => {
-    const bolaDe = bolas.find(bola => bola.id === deId);
-    const bolaPara = bolas.find(bola => bola.id === paraId);
+    const estadoDe = estados.find(estado => estado.id === deId);
+    const estadoPara = estados.find(estado => estado.id === paraId);
     
-    if (!bolaDe || !bolaPara || !bolaRefs.current[deId] || !bolaRefs.current[paraId]) {
+    if (!estadoDe || !estadoPara || !estadoRefs.current[deId] || !estadoRefs.current[paraId]) {
       return null;
     }
 
-    const bolaDeRect = bolaRefs.current[deId].getBoundingClientRect();
-    const bolaParaRect = bolaRefs.current[paraId].getBoundingClientRect();
+    const estadoDeRect = estadoRefs.current[deId].getBoundingClientRect();
+    const estadoParaRect = estadoRefs.current[paraId].getBoundingClientRect();
 
-    const centroBolaDe = {
-      x: bolaDe.posicao.x + bolaDeRect.width / 2,
-      y: bolaDe.posicao.y + bolaDeRect.height / 2
+    const centroEstadoDe = {
+      x: estadoDe.posicao.x + estadoDeRect.width / 2,
+      y: estadoDe.posicao.y + estadoDeRect.height / 2
     };
 
-    const centroBolaPara = {
-      x: bolaPara.posicao.x + bolaParaRect.width / 2,
-      y: bolaPara.posicao.y + bolaParaRect.height / 2
+    const centroEstadoPara = {
+      x: estadoPara.posicao.x + estadoParaRect.width / 2,
+      y: estadoPara.posicao.y + estadoParaRect.height / 2
     };
 
-    const dx = centroBolaPara.x - centroBolaDe.x;
-    const dy = centroBolaPara.y - centroBolaDe.y;
+    const dx = centroEstadoPara.x - centroEstadoDe.x;
+    const dy = centroEstadoPara.y - centroEstadoDe.y;
     const distancia = Math.sqrt(dx * dx + dy * dy);
 
     if (distancia === 0) return null;
@@ -412,24 +437,23 @@ const BolaArrastavel = () => {
     const perpendicularX = -direcaoY;
     const perpendicularY = direcaoX;
 
-    const raioBola = bolaDeRect.width / 2;
+    const raioEstado = estadoDeRect.width / 2;
     
     const espacamento = Math.abs(offset) > 0 ? 15 : 0;
     
     const inicio = {
-      x: centroBolaDe.x + direcaoX * raioBola + perpendicularX * espacamento * Math.sign(offset),
-      y: centroBolaDe.y + direcaoY * raioBola + perpendicularY * espacamento * Math.sign(offset)
+      x: centroEstadoDe.x + direcaoX * raioEstado + perpendicularX * espacamento * Math.sign(offset),
+      y: centroEstadoDe.y + direcaoY * raioEstado + perpendicularY * espacamento * Math.sign(offset)
     };
 
     const fim = {
-      x: centroBolaPara.x - direcaoX * raioBola + perpendicularX * espacamento * Math.sign(offset),
-      y: centroBolaPara.y - direcaoY * raioBola + perpendicularY * espacamento * Math.sign(offset)
+      x: centroEstadoPara.x - direcaoX * raioEstado + perpendicularX * espacamento * Math.sign(offset),
+      y: centroEstadoPara.y - direcaoY * raioEstado + perpendicularY * espacamento * Math.sign(offset)
     };
 
-    // POSIÇÃO CORRIGIDA - Mais próximo da seta
     const meio = {
-      x: (inicio.x + fim.x) / 2 + perpendicularX * 8 * Math.sign(offset),
-      y: (inicio.y + fim.y) / 2 + perpendicularY * 8 * Math.sign(offset)
+      x: (inicio.x + fim.x) / 2 + perpendicularY * 10,
+      y: (inicio.y + fim.y) / 2 - perpendicularX * 10
     };
 
     const tamanhoSeta = 12;
@@ -448,17 +472,17 @@ const BolaArrastavel = () => {
     return { inicio, fim, ponta1, ponta2, direcaoX, direcaoY, meio };
   };
 
-  const calcularPontosAutorreflexao = (bolaId: number) => {
-    const bola = bolas.find(b => b.id === bolaId);
-    if (!bola || !bolaRefs.current[bolaId]) return null;
+  const calcularPontosAutorreflexao = (estadoId: number) => {
+    const estado = estados.find(e => e.id === estadoId);
+    if (!estado || !estadoRefs.current[estadoId]) return null;
 
-    const bolaRect = bolaRefs.current[bolaId].getBoundingClientRect();
+    const estadoRect = estadoRefs.current[estadoId].getBoundingClientRect();
     const centro = {
-      x: bola.posicao.x + bolaRect.width / 2,
-      y: bola.posicao.y + bolaRect.height / 2
+      x: estado.posicao.x + estadoRect.width / 2,
+      y: estado.posicao.y + estadoRect.height / 2
     };
 
-    const raio = bolaRect.width / 2;
+    const raio = estadoRect.width / 2;
     const raioLoop = raio * 2.2;
 
     const anguloInicio = Math.PI / 4;
@@ -479,10 +503,9 @@ const BolaArrastavel = () => {
       y: centro.y - raio * Math.sin(anguloFim)
     };
 
-    // POSIÇÃO CORRIGIDA - Mais próximo do loop
     const pontoCaractere = {
-      x: centro.x + raioLoop * 0.35 + 8,
-      y: centro.y - raioLoop * 0.35 - 8
+      x: centro.x + raioLoop * 0.7,
+      y: centro.y - raioLoop * 0.7
     };
 
     const tamanhoSeta = 10;
@@ -508,67 +531,58 @@ const BolaArrastavel = () => {
     };
   };
 
-  const calcularDistancia = (deId: number, paraId: number): number => {
-    if (deId === paraId) return 0;
-    
-    const pontos = calcularPontosSetaNormal(deId, paraId, 0);
-    if (!pontos) return 0;
-    
-    const dx = pontos.fim.x - pontos.inicio.x;
-    const dy = pontos.fim.y - pontos.inicio.y;
-    
-    return Math.sqrt(dx * dx + dy * dy);
+  const handleDuploCliqueConexao = (conexaoId: string, caractereAtual: string) => {
+    setEditandoConexao(conexaoId);
+    setNovoCaractere(caractereAtual);
   };
 
-  const calcularOffsetConexaoDupla = (deId: number, paraId: number): number => {
-    const hash = deId * 31 + paraId;
-    return hash % 2 === 0 ? 1 : -1;
+  const handleCliqueConexao = (conexaoId: string) => {
+    setConexaoSelecionada(conexaoId);
   };
 
-  const existeConexaoDupla = (bola1: number, bola2: number): boolean => {
-    return existeConexao(bola1, bola2) && existeConexao(bola2, bola1);
-  };
-
-  const getCaractereBola = (id: number): string => {
-    const bola = bolas.find(b => b.id === id);
-    return bola?.caractere || id.toString();
-  };
-
-  const getCaractereConexao = (deId: number, paraId: number): string => {
-    const conexao = conexoes.find(c => c.de === deId && c.para === paraId);
-    return conexao?.caractere || '';
-  };
-
-  const gerarResumoConexoes = () => {
-    const resumo = [];
-    for (let i = 0; i < bolas.length; i++) {
-      for (let j = 0; j < bolas.length; j++) {
-        if (i !== j) {
-          const de = bolas[i].id;
-          const para = bolas[j].id;
-          const conexao = conexoes.find(c => c.de === de && c.para === para);
-          resumo.push(
-            <p key={`${de}-${para}`}>
-              {getCaractereBola(de)} → {getCaractereBola(para)}: 
-              {conexao ? ` ${conexao.caractere}` : ' ❌'}
-            </p>
-          );
-        }
-      }
-      const bolaId = bolas[i].id;
-      const autorreflexao = conexoes.find(c => c.de === bolaId && c.para === bolaId);
-      resumo.push(
-        <p key={`${bolaId}-self`}>
-          {getCaractereBola(bolaId)} → Si: 
-          {autorreflexao ? ` ${autorreflexao.caractere}` : ' ❌'}
-        </p>
-      );
+  const confirmarEdicaoConexao = () => {
+    if (editandoConexao && novoCaractere.trim() !== '') {
+      setConexoes(prev => prev.map(conexao => 
+        conexao.id === editandoConexao 
+          ? { ...conexao, caractere: novoCaractere.trim() }
+          : conexao
+      ));
+      setEditandoConexao(null);
+      setNovoCaractere('');
     }
-    return resumo;
+  };
+
+  const cancelarEdicaoConexao = () => {
+    setEditandoConexao(null);
+    setNovoCaractere('');
+  };
+
+  const removerConexao = (conexaoId: string) => {
+    const conexao = conexoes.find(c => c.id === conexaoId);
+    if (conexao) {
+      setConexoes(prev => prev.filter(c => c.id !== conexaoId));
+    }
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="automaton-container" ref={containerRef}>
+      {/* Botões de controle */}
+      <div className="automaton-simple-controls">
+        {!modoConectar ? (
+          <button className="btn-conectar" onClick={ativarModoConectar}>
+            🔗 Criar Conexões
+          </button>
+        ) : (
+          <button className="btn-cancelar" onClick={desativarModoConectar}>
+            ❌ Cancelar
+          </button>
+        )}
+        
+        <button className="btn-validar" onClick={handleValidar}>
+          ✅ Validar Autômato
+        </button>
+      </div>
+
       <svg
         ref={svgRef}
         className="seta-conexao"
@@ -584,19 +598,19 @@ const BolaArrastavel = () => {
         <defs>
           <marker
             id="arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="9"
-            refY="3.5"
+            markerWidth="8"
+            markerHeight="6"
+            refX="6"
+            refY="3"
             orient="auto"
           >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50" />
+            <polygon points="0 0, 8 3, 0 6" fill="#4CAF50" />
           </marker>
           <marker
             id="arrowhead-autorreflexao"
             markerWidth="8"
             markerHeight="6"
-            refX="7"
+            refX="6"
             refY="3"
             orient="auto"
           >
@@ -610,7 +624,13 @@ const BolaArrastavel = () => {
             if (!pontos) return null;
 
             return (
-              <g key={conexao.id} className="seta-autorreflexao">
+              <g 
+                key={conexao.id} 
+                className={`seta-autorreflexao ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
+                onClick={() => handleCliqueConexao(conexao.id)}
+                onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
+                style={{ cursor: 'pointer' }}
+              >
                 <path
                   d={`
                     M ${pontos.centro.x + pontos.raioLoop * 0.3}, ${pontos.centro.y}
@@ -619,40 +639,44 @@ const BolaArrastavel = () => {
                       ${pontos.pontoFim.x}, ${pontos.pontoFim.y}
                   `}
                   stroke="#9C27B0"
-                  strokeWidth="3"
+                  strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
                   fill="none"
                   markerEnd="url(#arrowhead-autorreflexao)"
                 />
                 <text
-                  x={pontos.pontoCaractere.x}
-                  y={pontos.pontoCaractere.y}
+                  x={pontos.pontoCaractere.x + 4}
+                  y={pontos.pontoCaractere.y + 85}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   className="caractere-conexao"
                   fontSize="14"
                   fontWeight="bold"
                   fill="#9C27B0"
+                  style={{ cursor: 'pointer' }}
                 >
                   {conexao.caractere}
                 </text>
               </g>
             );
           } else {
-            const isDupla = existeConexaoDupla(conexao.de, conexao.para);
-            const offset = isDupla ? calcularOffsetConexaoDupla(conexao.de, conexao.para) : 0;
-
-            const pontos = calcularPontosSetaNormal(conexao.de, conexao.para, offset);
+            const pontos = calcularPontosSetaNormal(conexao.de, conexao.para);
             if (!pontos) return null;
 
             return (
-              <g key={conexao.id} className={`seta-conectavel ${isDupla ? (offset > 0 ? 'dupla-superior' : 'dupla-inferior') : ''}`}>
+              <g 
+                key={conexao.id} 
+                className={`seta-conectavel ${conexaoSelecionada === conexao.id ? 'selecionada' : ''}`}
+                onClick={() => handleCliqueConexao(conexao.id)}
+                onDoubleClick={() => handleDuploCliqueConexao(conexao.id, conexao.caractere)}
+                style={{ cursor: 'pointer' }}
+              >
                 <line
                   x1={pontos.inicio.x}
                   y1={pontos.inicio.y}
                   x2={pontos.fim.x}
                   y2={pontos.fim.y}
-                  stroke={conexao.ativa ? "#4CAF50" : "#FF5722"}
-                  strokeWidth="3"
+                  stroke="#4CAF50"
+                  strokeWidth={conexaoSelecionada === conexao.id ? "4" : "3"}
                   markerEnd="url(#arrowhead)"
                 />
                 <polygon
@@ -661,7 +685,7 @@ const BolaArrastavel = () => {
                     ${pontos.ponta1.x},${pontos.ponta1.y}
                     ${pontos.ponta2.x},${pontos.ponta2.y}
                   `}
-                  fill={conexao.ativa ? "#4CAF50" : "#FF5722"}
+                  fill="#4CAF50"
                 />
                 <text
                   x={pontos.meio.x}
@@ -671,7 +695,8 @@ const BolaArrastavel = () => {
                   className="caractere-conexao"
                   fontSize="14"
                   fontWeight="bold"
-                  fill={conexao.ativa ? "#4CAF50" : "#FF5722"}
+                  fill="#4CAF50"
+                  style={{ cursor: 'pointer' }}
                 >
                   {conexao.caractere}
                 </text>
@@ -681,124 +706,60 @@ const BolaArrastavel = () => {
         })}
       </svg>
 
-      {bolas.map(bola => (
+      {estados.map(estado => (
         <div
-          key={bola.id}
-          ref={atribuirRef(bola.id)}
+          key={estado.id}
+          ref={atribuirRef(estado.id)}
           className={`
-            bola 
-            bola-${bola.id} 
-            ${bola.arrastando ? 'arrastando' : ''}
-            ${bola.conectada ? 'conectada' : ''}
-            ${bola.selecionada ? 'selecionada' : ''}
+            estado 
+            ${estado.arrastando ? 'arrastando' : ''}
+            ${estado.conectada ? 'conectada' : ''}
+            ${estado.selecionada ? 'selecionada' : ''}
+            ${estado.isInicial ? 'inicial' : ''}
+            ${estado.isFinal ? 'final' : ''}
           `}
           style={{
-            transform: `translate(${bola.posicao.x}px, ${bola.posicao.y}px)`,
-            background: `radial-gradient(circle at 30% 30%, ${
-              bola.id === 2 ? '#ff6b6b, #c0392b' :
-              bola.id === 3 ? '#6bffb8, #2bc06a' :
-              '#ffeb3b, #ff9800'
-            })`
+            transform: `translate(${estado.posicao.x}px, ${estado.posicao.y}px)`,
           }}
-          onMouseDown={(e) => iniciarArraste(e, bola.id)}
-          onTouchStart={(e) => iniciarArraste(e, bola.id)}
-          onClick={() => clicarBola(bola.id)}
+          onMouseDown={(e) => iniciarArraste(e, estado.id)}
+          onTouchStart={(e) => iniciarArraste(e, estado.id)}
+          onClick={() => clicarEstado(estado.id)}
         >
-          <span className="bola-caractere">{bola.caractere}</span>
+          <span className="estado-nome">{estado.nome}</span>
+          {estado.isInicial && <div className="marcador-inicial">→</div>}
+          {estado.isFinal && <div className="marcador-final">⦻</div>}
         </div>
       ))}
       
-      <div className="info">
-        <h1>Sistema de Autômatos</h1>
-        
-        <div className="controles">
-          {!modoConectar ? (
-            <button className="btn-conectar" onClick={ativarModoConectar}>
-              🔗 Modo Conectar
-            </button>
-          ) : (
-            <button className="btn-cancelar" onClick={desativarModoConectar}>
-              ❌ Cancelar
-            </button>
-          )}
-          
-          {conexoes.length > 0 && (
-            <button className="btn-remover-todas" onClick={removerTodasConexoes}>
-              🗑️ Remover Todas
-            </button>
-          )}
-        </div>
-
-        <div className="status">
-          <p>Modo: <strong>{modoConectar ? 'CONECTAR' : 'ARRASTAR'}</strong></p>
-          {modoConectar && bolaSelecionada && (
-            <p>Selecionada: {getCaractereBola(bolaSelecionada)} - Clique em outra bola ou na mesma para autorreflexão</p>
-          )}
-          {modoConectar && !bolaSelecionada && (
-            <p>Clique em uma bola para começar a conectar</p>
-          )}
-          <p className="dica">
-            💡 Dica: Clique na mesma bola duas vezes para criar autorreflexão
-          </p>
-        </div>
-
-        <div className="conexoes-info">
-          <h3>Conexões ({conexoes.length})</h3>
-          {conexoes.map(conexao => (
-            <div key={conexao.id} className={`conexao-item ${conexao.tipo}`}>
-              <div className="conexao-detalhes">
-                <span className="direcao">
-                  {conexao.tipo === 'autorreflexao' ? '🔄' : '→'} 
-                  {getCaractereBola(conexao.de)} {conexao.tipo === 'autorreflexao' ? '→ Si mesma' : `→ ${getCaractereBola(conexao.para)}`}
-                </span>
-                <span className="distancia">
-                  ({conexao.tipo === 'autorreflexao' ? 'loop' : Math.round(calcularDistancia(conexao.de, conexao.para)) + 'px'})
-                </span>
-              </div>
-              
-              <div className="conexao-controles">
-                {editandoConexao === conexao.id ? (
-                  <div className="edicao-caractere">
-                    <input
-                      type="text"
-                      value={novoCaractere}
-                      onChange={(e) => setNovoCaractere(e.target.value)}
-                      maxLength={1}
-                      className="input-caractere"
-                      autoFocus
-                    />
-                    <button onClick={confirmarEdicaoConexao} className="btn-confirmar">
-                      ✓
-                    </button>
-                    <button onClick={cancelarEdicaoConexao} className="btn-cancelar-edicao">
-                      ✗
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <span className="caractere-conexao-texto" 
-                          onClick={() => iniciarEdicaoConexao(conexao.id, conexao.caractere)}>
-                      [{conexao.caractere}]
-                    </span>
-                    <button onClick={() => removerConexao(conexao.id)} className="btn-remover">
-                      Remover
-                    </button>
-                  </>
-                )}
+      {/* Modal de edição de caractere */}
+      {editandoConexao && (
+        <>
+          <div className="edicao-caractere-modal">
+            <h4>Editar Caractere da Transição</h4>
+            <div className="edicao-caractere">
+              <input
+                type="text"
+                value={novoCaractere}
+                onChange={(e) => setNovoCaractere(e.target.value)}
+                className="input-caractere"
+                autoFocus
+                placeholder="a"
+              />
+              <div className="botoes-edicao">
+                <button onClick={confirmarEdicaoConexao} className="btn-confirmar">
+                  Confirmar
+                </button>
+                <button onClick={cancelarEdicaoConexao} className="btn-cancelar-edicao">
+                  Cancelar
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="resumo-conexoes">
-          <h4>Resumo de Conexões:</h4>
-          {gerarResumoConexoes()}
-        </div>
-
-        <button onClick={posicionarBolas}>Centralizar Bolas</button>
-      </div>
+            <p className="dica-modal">Pressione Delete para remover a conexão selecionada</p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-export default BolaArrastavel;
+export default AutomatonLesson;
