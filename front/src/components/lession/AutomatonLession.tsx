@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react"
 
 // Interfaces para o componente AutomatonLesson
 interface Posicao {
@@ -49,10 +49,8 @@ interface ValidationDetails {
   mensagens: string[];
 }
 
-const AutomatonLesson: React.FC<AutomatonLessonProps> = ({ 
-  onStateChange, 
-  onValidation 
-}) => {
+const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLessonProps>(
+  ({ onStateChange, onValidation }, ref) => {
   const VELOCIDADE_SUAVIZACAO = 0.3;
 
   // Definindo os 8 estados possíveis
@@ -84,36 +82,28 @@ const AutomatonLesson: React.FC<AutomatonLessonProps> = ({
   const animationFrameRef = useRef<number>(0);
 
   // Notificar mudanças de estado
+  const prevRef = useRef<{ estados: Estado[]; conexoes: Conexao[] }>({
+    estados: [],
+    conexoes: []
+  });
+  
   useEffect(() => {
-    if (onStateChange) {
+    const mudou =
+      JSON.stringify(prevRef.current.estados) !== JSON.stringify(estados) ||
+      JSON.stringify(prevRef.current.conexoes) !== JSON.stringify(conexoes);
+
+    if (mudou && onStateChange) {
       onStateChange(estados, conexoes);
+      prevRef.current = { estados, conexoes };
     }
   }, [estados, conexoes, onStateChange]);
 
-// Função de validação
-const validarAutomato = () => {
-  // Ordenar conexões por estado de origem e destino
-  const conexoesOrdenadas = [...conexoes].sort((a, b) => {
-    if (a.de !== b.de) return a.de - b.de;
-    return a.para - b.para;
-  });
 
-  // Formatar no estilo desejado
-  const conexoesFormatadas = conexoesOrdenadas.map(conexao => ({
-    de: conexao.de,
-    para: conexao.para,
-    caractere: conexao.caractere
-  }));
 
-  console.log("Conexões em ordem:", conexoesFormatadas);
-  
-  return conexoesFormatadas;
-};
 
-const handleValidar = () => {
-  const conexoesValidadas = validarAutomato();
-  return conexoesValidadas
-};
+
+
+
   const atribuirRef = (id: number) => (el: HTMLDivElement | null) => {
     estadoRefs.current[id] = el;
   };
@@ -395,7 +385,7 @@ const handleValidar = () => {
             ativa: true,
             direcao: `${estadoSelecionado}→${id}`,
             tipo: 'normal',
-            caractere: 'A'
+            caractere: 'a'
           };
         
           setConexoes(prev => [...prev, novaConexao]);
@@ -403,7 +393,7 @@ const handleValidar = () => {
       
         setEstadoSelecionado(null);
         setModoConectar(false);
-        desativarModoConectar();
+        desativarModoConectar(); 
       }
     } else {
       // Clique simples normal - não faz nada especial
@@ -487,17 +477,17 @@ const handleValidar = () => {
       (c.de === conexao.de && c.para === conexao.para) ||
       (c.de === conexao.para && c.para === conexao.de)
     );
-  
+
     const count = conexoesEntre.length;
     const i = conexoesEntre.findIndex(c => c.id === conexao.id);
-  
+
     // offset simétrico (distribui uniformemente)
     const baseOffset = i * 2 - count + 1;
-  
+
     // 🔁 Se for conexão reversa (ex: A→B vs B→A), inverte o sinal
     const isReverse = conexao.de > conexao.para; // pode ajustar conforme seu id cresce
     const offset = isReverse ? -baseOffset : baseOffset;
-  
+
     return offset 
   };
 
@@ -607,10 +597,7 @@ const handleValidar = () => {
             ❌ Cancelar
           </button>
         )}
-        
-        <button className="btn-validar" onClick={handleValidar}>
-          ✅ Validar Autômato
-        </button>
+
       </div>
 
       <svg
@@ -782,6 +769,5 @@ const handleValidar = () => {
       )}
     </div>
   );
-};
-
+});
 export default AutomatonLesson;

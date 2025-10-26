@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./LessonTemplate.css";
 import AutomatonLesson from "./AutomatonLession";
 import type { Estado, Conexao } from "./AutomatonLession";
@@ -12,6 +12,14 @@ interface LessonData {
   alternatives: string[];
   correctAnswer: number;
   explanation?: string;
+  isAutomaton?: boolean;
+  correctAutomaton?: {
+    conexoes: Array<{
+      de: number;
+      para: number;
+      caractere: string;
+    }>;
+  };
 }
 
 interface LessonTemplateProps {
@@ -22,7 +30,24 @@ interface LessonTemplateProps {
   isAutomaton?: boolean;
 }
 
-const LessonTemplate: React.FC<LessonTemplateProps> = ({
+interface ValidationDetails {
+  estadosIniciais: Estado[];
+  estadosFinais: Estado[];
+  conexoesValidas: Array<{
+    de: number;
+    para: number;
+    caractere: string;
+  }>;
+  conexoesInvalidas: Array<{
+    de: number;
+    para: number;
+    caractere: string;
+  }>;
+  mensagens: string[];
+}
+
+const LessonTemplate: React.FC<LessonTemplateProps> = 
+({
   lessonData,
   onComplete,
   onExit,
@@ -40,15 +65,111 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     xp: number;
     streak: number;
   } | null>(null);
+  const [userAutomaton, setUserAutomaton] = useState<{ estados: Estado[]; conexoes: Conexao[] } | null>(null);
+  const automatonLessonRef = useRef<{ handleValidar: () => any }>(null);
 
   useEffect(() => {
     setStartTime(Date.now());
     setShowSummary(false);
     setAnswers([]);
     setLessonResult(null);
+    setUserAutomaton(null);
+    setIsSubmitted(false);
+    setIsCorrect(null);
+    setSelectedAnswer(null);
   }, [lessonData]);
 
-  const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {};
+// ✅ Função para validar o autômato - CORRIGIDA
+const validateAutomaton = (userConexoes: Array<{de: number; para: number; caractere: string}>) => {
+  if (!lessonData.correctAutomaton) return false;
+
+  const correctConexoes = lessonData.correctAutomaton.conexoes;
+
+  console.log("Conexões do usuário:", userConexoes);
+  console.log("Conexões corretas:", correctConexoes);
+  
+  // ✅ Normalizar os caracteres para minúsculo antes de ordenar
+  const normalizedUser = userConexoes.map(conn => ({
+    de: conn.de,
+    para: conn.para,
+    caractere: conn.caractere.toLowerCase()
+  }));
+
+  const normalizedCorrect = correctConexoes.map(conn => ({
+    de: conn.de,
+    para: conn.para,
+    caractere: conn.caractere.toLowerCase()
+  }));
+
+  // Ordenar ambas as listas para comparação consistente
+  const sortedUser = [...normalizedUser].sort((a, b) => {
+    if (a.de !== b.de) return a.de - b.de;
+    if (a.para !== b.para) return a.para - b.para;
+    return a.caractere.localeCompare(b.caractere);
+  });
+
+  const sortedCorrect = [...normalizedCorrect].sort((a, b) => {
+    if (a.de !== b.de) return a.de - b.de;
+    if (a.para !== b.para) return a.para - b.para;
+    return a.caractere.localeCompare(b.caractere);
+  });
+
+  console.log("Usuário ordenado:", sortedUser);
+  console.log("Correto ordenado:", sortedCorrect);
+  console.log("Número de conexões - Usuário:", sortedUser.length, "Correto:", sortedCorrect.length);
+
+  // Comparação profunda
+  const isEqual = JSON.stringify(sortedUser) === JSON.stringify(sortedCorrect);
+  console.log("Resultado da validação:", isEqual);
+  
+  return isEqual;
+};
+
+  const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
+    setUserAutomaton({ estados, conexoes });
+  };
+
+  // ✅ Função para receber a validação do AutomatonLesson
+  const handleAutomatonValidation = (isValid: boolean, message: string, details: ValidationDetails) => {
+    console.log("Validação recebida:", details);
+
+    // ✅ CONVERTE para Conexao[] antes de usar
+    const userConnections: Conexao[] = details.conexoesValidas.map(conn => ({
+      id: `conexao-${conn.de}-${conn.para}`,
+      de: conn.de,
+      para: conn.para,
+      ativa: true,
+      direcao: `${conn.de}→${conn.para}`,
+      tipo: 'normal',
+      caractere: conn.caractere
+    }));
+
+    setUserAutomaton({ 
+      estados: details.estadosIniciais,
+      conexoes: userConnections 
+    });
+
+    // ✅ Valida usando as conexões recebidas
+    const correct = validateAutomaton(details.conexoesValidas);
+    setIsCorrect(correct);
+    setIsSubmitted(true);
+  };
+
+  // ✅ Nova função de submit para autômatos
+  const handleAutomatonSubmit = () => {
+    if (!userAutomaton) return;
+    
+    // Converte Conexao[] para o formato simplificado para validação
+    const conexoesSimplificadas = userAutomaton.conexoes.map(conn => ({
+      de: conn.de,
+      para: conn.para,
+      caractere: conn.caractere
+    }));
+    
+    const correct = validateAutomaton(conexoesSimplificadas);
+    setIsCorrect(correct);
+    setIsSubmitted(true);
+  };
 
   // 📤 Envia o resultado da lição ao backend e atualiza user localStorage
   const handleLessonComplete = async (correctAnswers: number, totalQuestions: number) => {
@@ -102,13 +223,11 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   };
 
   const handleContinue = async () => {
-    if (isCorrect) {
-      setAnswers((prev) => [...prev, true]);
-      await handleLessonComplete(1, 1);
-    } else {
-      setAnswers((prev) => [...prev, false]);
-      await handleLessonComplete(0, 1);
-    }
+    const correctCount = isCorrect ? 1 : 0;
+    const totalCount = 1;
+    
+    setAnswers((prev) => [...prev, isCorrect || false]);
+    await handleLessonComplete(correctCount, totalCount);
     setShowSummary(true);
   };
 
@@ -184,7 +303,37 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
 
       <div className="lesson-right">
         {isAutomaton ? (
-          <AutomatonLesson onStateChange={handleAutomatonStateChange} />
+          <div className="automaton-container">
+            <AutomatonLesson 
+              ref={automatonLessonRef}
+              onStateChange={handleAutomatonStateChange}
+              onValidation={handleAutomatonValidation}
+            />
+            
+            {isSubmitted && (
+              <div
+                className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}
+              >
+                {isCorrect ? "🎉 Parabéns! Autômato correto!" : "💭 Autômato incorreto! Tente novamente."}
+              </div>
+            )}
+
+            <div className="action-buttons">
+              {!isSubmitted ? (
+                <button
+                  className="submit-button"
+                  onClick={handleAutomatonSubmit}
+                  disabled={!userAutomaton}
+                >
+                  Validar Autômato
+                </button>
+              ) : (
+                <button className="continue-button" onClick={handleContinue}>
+                  Continuar →
+                </button>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="question-container">
             <h2 className="question-title">{lessonData.question}</h2>

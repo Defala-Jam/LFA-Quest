@@ -5,7 +5,10 @@ import { jwtDecode } from "jwt-decode";
 import Sidebar from "../../components/sidebar/Sidebar.tsx";
 import Task from "../../components/Task/Taks.tsx";
 import Lesson from "../../components/lession/LessonTemplate.tsx";
-import "./Path_player.css";
+import {
+  lesson_fase1_q1,
+  lesson_fase1_q2,
+} from "../../components/lession/lessionsData.ts"; // ✅ importa suas questõesimport "./Path_player.css";
 
 interface DecodedToken {
   id: number;
@@ -212,14 +215,14 @@ const Path_player: React.FC = () => {
     correctAnswer: 0,
     correctAutomaton: {
       conexoes: [
-        { de: 2, para: 3, caractere: "a" },
-        { de: 2, para: 6, caractere: "b" },
+        { de: 2, para: 3, caractere: "b" },
+        { de: 2, para: 6, caractere: "a" },
         { de: 3, para: 5, caractere: "a" },
         { de: 5, para: 2, caractere: "b" },
         { de: 5, para: 5, caractere: "a" },
         { de: 6, para: 7, caractere: "a" },
         { de: 7, para: 6, caractere: "b" },
-        { de: 7, para: 7, caractere: "a" },
+        { de: 7, para: 7, caractere: "a" }
       ],
     },
   };
