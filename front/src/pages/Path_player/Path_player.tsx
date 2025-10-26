@@ -6,15 +6,19 @@ import Sidebar from "../../components/sidebar/Sidebar.tsx";
 import Task from "../../components/Task/Taks.tsx";
 import Lesson from "../../components/lession/LessonTemplate.tsx";
 import {
-  lesson_fase1_q1,
-  lesson_fase1_q2,
-} from "../../components/lession/lessionsData.ts"; // ✅ importa suas questõesimport "./Path_player.css";
+  lessonsFase1,
+  lessonsFase2,
+} from "../../components/lession/LessonData.ts";
+
+import "./path_player.css"  
 
 interface DecodedToken {
   id: number;
   email: string;
   exp: number;
 }
+
+
 
 const Path_player: React.FC = () => {
   const [activeNavItem, setActiveNavItem] = useState("journey");
@@ -24,7 +28,11 @@ const Path_player: React.FC = () => {
   const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal");
   const [newAchievements, setNewAchievements] = useState<any[]>([]);
   const [showAchievementsPopup, setShowAchievementsPopup] = useState(false);
-
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [currentPhase, setCurrentPhase] = useState(1); // 1 ou 2
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 0-4 para as 5 questões
+  const [showPhaseSummary, setShowPhaseSummary] = useState(false); // Nova state para controlar o resumo da fase
+  const [phaseAnswers, setPhaseAnswers] = useState<boolean[]>([]); // Armazenar respostas da fase
 
   // 🔹 Dados do usuário vindos do backend
   const [userData, setUserData] = useState<any>(null);
@@ -41,6 +49,10 @@ const Path_player: React.FC = () => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
+
+
+
+
 
   // ================================
   // 🧠 Buscar dados do backend
@@ -120,23 +132,51 @@ const Path_player: React.FC = () => {
     console.log(`[v0] Navigating to: ${item}`);
   };
 
-  const taskData = {
-    icon: "🧠",
-    title: "Introdução aos Autômatos Finitos Determinísticos",
-    description: "Entenda o que são autômatos finitos determinísticos (DFA) e como eles funcionam.",
-    difficulty: "Intermediário",
-    xp: 15,
-    progress: 60,
-    learningPoints: [
-      "Estrutura e funcionamento de autômatos finitos determinísticos",
-      "Transições e estados em autômatos",
-      "Reconhecimento de padrões com DFA",
-      "Exemplo de implementação de DFA em JavaScript",
-    ],
-  };
+  // Dados das fases (nós principais)
+  const phaseData = [
+    {
+      phase: 1,
+      title: "Fase 1: Fundamentos dos Autômatos",
+      description: "Aprenda os conceitos básicos de autômatos finitos e gramáticas regulares.",
+      icon: "🧠",
+      difficulty: "Iniciante",
+      xp: 75,
+      progress: 60,
+      questionsCount: 5,
+      learningPoints: [
+        "Autômatos Finitos Não Determinísticos (AFND)",
+        "Gramáticas Regulares e Derivações",
+        "Conversão de AFN para AFD",
+        "Propriedades dos Autômatos",
+        "Expressões Aritméticas e Gramáticas"
+      ]
+    },
+    {
+      phase: 2,
+      title: "Fase 2: Aplicações Avançadas",
+      description: "Aprofunde seus conhecimentos com questões mais complexas sobre autômatos.",
+      icon: "⚡",
+      difficulty: "Intermediário",
+      xp: 75,
+      progress: 30,
+      questionsCount: 5,
+      learningPoints: [
+        "Análise de Autômatos e Cadeias",
+        "Autômatos JFLAP e Transições",
+        "Autômatos Determinísticos vs Não Determinísticos",
+        "Linguagens Aceitas por AFD",
+        "Tipos de Gramática e Hierarquia de Chomsky"
+      ]
+    }
+  ];
 
-  const handleNodeClick = () => {
-    setSelectedTask(taskData);
+  const handleNodeClick = (phase: number) => {
+    const phaseInfo = phaseData.find(p => p.phase === phase);
+    setSelectedTask(phaseInfo);
+    setCurrentPhase(phase);
+    setCurrentQuestionIndex(0); // Começar na primeira questão
+    setPhaseAnswers([]); // Resetar respostas
+    setShowPhaseSummary(false); // Resetar resumo
     setIsTaskOpen(true);
   };
 
@@ -146,7 +186,7 @@ const Path_player: React.FC = () => {
   };
 
   const handleStartLesson = () => {
-    console.log("[v0] Starting lesson...");
+    console.log(`[v0] Starting lesson - Phase ${currentPhase}, Question ${currentQuestionIndex}`);
     setIsLessonActive(true);
     handleCloseTask();
   };
@@ -163,69 +203,131 @@ const Path_player: React.FC = () => {
     setCurrentLessonType("normal");
   };
 
-  const handleLessonComplete = async () => {
-    setIsLessonActive(false);
-    setCurrentLessonType("normal");
+  const handleLessonComplete = async (isCorrect: boolean) => {
+    // Salvar a resposta atual
+    const updatedAnswers = [...phaseAnswers, isCorrect];
+    setPhaseAnswers(updatedAnswers);
 
-    if (!userData) return; // só faz sentido se o usuário estiver logado
+    const currentPhaseQuestions = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
+    const isLastQuestion = currentQuestionIndex >= currentPhaseQuestions.length - 1;
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
-      const data = await res.json();
+    if (isLastQuestion) {
+      // Última questão - mostrar resumo da fase
+      console.log(`🎉 Fase ${currentPhase} concluída!`);
+      setShowPhaseSummary(true);
+      setIsLessonActive(false);
 
-      if (data.newAchievements && data.newAchievements.length > 0) {
-        setNewAchievements(data.newAchievements);
-        setShowAchievementsPopup(true);
-        console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
-      } else {
-        console.log("Nenhuma nova conquista.");
+      // Verificar conquistas apenas quando a fase for completada
+      if (!userData) return;
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+        const data = await res.json();
+
+        if (data.newAchievements && data.newAchievements.length > 0) {
+          setNewAchievements(data.newAchievements);
+          setShowAchievementsPopup(true);
+          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
+        } else {
+          console.log("Nenhuma nova conquista.");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar conquistas:", err);
       }
-    } catch (err) {
-      console.error("Erro ao verificar conquistas:", err);
+    } else {
+      // Próxima questão - continuar sem mostrar resumo
+      setCurrentQuestionIndex(prev => prev + 1);
+      // A lição continua ativa para a próxima questão
     }
   };
 
+  const handlePhaseSummaryContinue = () => {
+    setShowPhaseSummary(false);
+    setCurrentQuestionIndex(0);
+    setPhaseAnswers([]);
+  };
 
   const handleIncorrectAnswer = () => {
     console.log("Resposta incorreta - fornecer feedback adicional");
   };
 
-  // Dados das lições
-  const lessonData = {
-    title: "Introdução aos Autômatos Finitos Determinísticos",
-    content:
-      "Autômatos finitos determinísticos (DFA) são máquinas teóricas que reconhecem padrões em uma sequência de símbolos.",
-    explanation:
-      "Um DFA possui estados, alfabeto de entrada e transições determinísticas. Ele aceita ou rejeita a entrada com base no estado final.",
-    question: "Qual das alternativas é verdadeira sobre um autômato finito determinístico?",
-    alternatives: [
-      "Um DFA pode ter transições não determinísticas.",
-      "Um DFA tem um número infinito de estados.",
-      "Um DFA pode ser usado para reconhecer apenas linguagens regulares.",
-      "Um DFA não pode ter um estado inicial.",
-    ],
-    correctAnswer: 2,
+  // Obter lição atual baseada na fase e índice da questão
+  const getCurrentLesson = () => {
+    if (currentLessonType === "automaton") {
+      return {
+        isAutomaton: true,
+        title: "Construção de Autômato Finito Determinístico",
+        explanation: "Marque o estado inicial com → e estados finais com ⦻.",
+        alternatives: [],
+        correctAnswer: 0,
+        correctAutomaton: {
+          conexoes: [
+            { de: 2, para: 3, caractere: "b" },
+            { de: 2, para: 6, caractere: "a" },
+            { de: 3, para: 5, caractere: "a" },
+            { de: 5, para: 2, caractere: "b" },
+            { de: 5, para: 5, caractere: "a" },
+            { de: 6, para: 7, caractere: "a" },
+            { de: 7, para: 6, caractere: "b" },
+            { de: 7, para: 7, caractere: "a" }
+          ],
+        },
+      };
+    }
+
+    // Lições normais baseadas na fase e questão atual
+    const lessons = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
+    const currentLesson = lessons[currentQuestionIndex];
+    
+    // Adicionar indicador de progresso no título
+    if (currentLesson) {
+      return {
+        ...currentLesson,
+        title: `${currentLesson.title} (Questão ${currentQuestionIndex + 1} de ${lessons.length})`
+      };
+    }
+    
+    return lessonsFase1[0]; // Fallback
   };
 
-  const automatonLessonData = {
-    isAutomaton: true,
-    title: "Construção de Autômato Finito Determinístico",
-    explanation: "Marque o estado inicial com → e estados finais com ⦻.",
-    alternatives: [],
-    correctAnswer: 0,
-    correctAutomaton: {
-      conexoes: [
-        { de: 2, para: 3, caractere: "b" },
-        { de: 2, para: 6, caractere: "a" },
-        { de: 3, para: 5, caractere: "a" },
-        { de: 5, para: 2, caractere: "b" },
-        { de: 5, para: 5, caractere: "a" },
-        { de: 6, para: 7, caractere: "a" },
-        { de: 7, para: 6, caractere: "b" },
-        { de: 7, para: 7, caractere: "a" }
-      ],
-    },
-  };
+  // -------------------------
+  // 🔹 TELA DE RESUMO DA FASE
+  // -------------------------
+  if (showPhaseSummary) {
+    const totalQuestions = currentPhase === 1 ? lessonsFase1.length : lessonsFase2.length;
+    const correctAnswers = phaseAnswers.filter(answer => answer).length;
+    const phaseTitle = currentPhase === 1 ? "Fundamentos dos Autômatos" : "Aplicações Avançadas";
+
+    return (
+      <div className="summary-container">
+        <div className="summary-card">
+          <h1>🎉 Fase Concluída!</h1>
+          <h2>Fase {currentPhase}: {phaseTitle}</h2>
+
+          <p>
+            Você respondeu <b>{totalQuestions}</b> pergunta{totalQuestions > 1 ? "s" : ""} nesta fase.
+          </p>
+          <p>
+            ✅ Acertos: <b>{correctAnswers}</b> &nbsp;&nbsp; ❌ Erros: <b>{totalQuestions - correctAnswers}</b>
+          </p>
+
+          <p className="performance-text">
+            {correctAnswers === totalQuestions ? "🎯 Performance Perfeita!" :
+             correctAnswers >= totalQuestions * 0.7 ? "🌟 Excelente desempenho!" :
+             correctAnswers >= totalQuestions * 0.5 ? "👍 Bom trabalho!" :
+             "💪 Continue praticando!"}
+          </p>
+
+          <button
+            className="continue-button"
+            onClick={handlePhaseSummaryContinue}
+          >
+            Continuar Jornada →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // -------------------------
   // 🔹 LIÇÃO ATIVA
@@ -233,8 +335,8 @@ const Path_player: React.FC = () => {
   if (isLessonActive) {
     return (
       <Lesson
-        lessonData={currentLessonType === "automaton" ? automatonLessonData : lessonData}
-        onComplete={handleLessonComplete}
+        lessonData={getCurrentLesson()}
+        onComplete={() => handleLessonComplete(true)}
         onExit={handleExitLesson}
         onIncorrect={handleIncorrectAnswer}
         isAutomaton={currentLessonType === "automaton"}
@@ -252,52 +354,57 @@ const Path_player: React.FC = () => {
       {/* Conteúdo principal */}
       <div className="main-content">
         <div className="learning-path">
-          <div className="path-title">Autômatos Finitos Determinísticos</div>
+          <div className="path-title">Jornada de Autômatos Finitos</div>
 
           <div className="path-nodes">
-            <div className="path-node completed" onClick={handleNodeClick}>
+            {/* Nó da Fase 1 */}
+            <div className="path-node completed" onClick={() => handleNodeClick(1)}>
               <div className="node-circle">
-                <span className="checkmark">✓</span>
+                <span className="node-icon">🧠</span>
               </div>
-              <div className="node-label">Teoria Básica</div>
+              <div className="node-label">Fase 1: Fundamentos</div>
+              <div className="node-subtitle">5 questões</div>
             </div>
 
             <div className="path-connector"></div>
 
-            <div className="path-node completed" onClick={handleNodeClick}>
+            {/* Nó da Fase 2 */}
+            <div className="path-node active" onClick={() => handleNodeClick(2)}>
               <div className="node-circle">
-                <span className="checkmark">✓</span>
+                <span className="node-icon">⚡</span>
               </div>
-              <div className="node-label">Exemplos</div>
+              <div className="node-label">Fase 2: Aplicações</div>
+              <div className="node-subtitle">5 questões</div>
             </div>
 
             <div className="path-connector"></div>
 
+            {/* Prática Interativa (separada) */}
             <div
-              className="path-node active"
+              className="path-node upcoming"
               onClick={() => {
                 setSelectedTask({
-                  ...taskData,
                   title: "Prática: Construção de Autômato",
-                  description:
-                    "Construa seu próprio autômato finito determinístico arrastando estados e criando transições.",
+                  description: "Construa seu próprio autômato finito determinístico arrastando estados e criando transições.",
+                  icon: "🎮",
+                  difficulty: "Prática",
+                  xp: 25,
+                  progress: 0,
+                  learningPoints: [
+                    "Construção de autômatos do zero",
+                    "Definição de estados iniciais e finais",
+                    "Criação de transições com caracteres",
+                    "Validação de autômatos construídos"
+                  ]
                 });
                 setIsTaskOpen(true);
               }}
             >
               <div className="node-circle">
-                <span className="node-icon">⚡</span>
+                <span className="node-icon">🎮</span>
               </div>
               <div className="node-label">Prática Interativa</div>
-            </div>
-
-            <div className="path-connector"></div>
-
-            <div className="path-node upcoming" onClick={handleNodeClick}>
-              <div className="node-circle">
-                <span className="node-icon">?</span>
-              </div>
-              <div className="node-label">Quiz Final</div>
+              <div className="node-subtitle">Autômatos</div>
             </div>
           </div>
         </div>
@@ -307,6 +414,31 @@ const Path_player: React.FC = () => {
           <button className="automaton-quick-btn" onClick={handleStartAutomatonLesson}>
             🎮 Iniciar Prática de Autômato
           </button>
+        </div>
+
+        {/* Progresso das Fases */}
+        <div className="phases-progress">
+          <div className="phase-card">
+            <h3>🧠 Fase 1: Fundamentos</h3>
+            <p>Conceitos básicos de autômatos e gramáticas</p>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: '60%' }}></div>
+            </div>
+            <button className="phase-btn" onClick={() => handleNodeClick(1)}>
+              Continuar Fase 1
+            </button>
+          </div>
+
+          <div className="phase-card">
+            <h3>⚡ Fase 2: Aplicações</h3>
+            <p>Questões avançadas e análise de autômatos</p>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: '30%' }}></div>
+            </div>
+            <button className="phase-btn" onClick={() => handleNodeClick(2)}>
+              Iniciar Fase 2
+            </button>
+          </div>
         </div>
       </div>
 
@@ -336,8 +468,12 @@ const Path_player: React.FC = () => {
             <button className="action-btn" onClick={handleStartAutomatonLesson}>
               Praticar Construção de Autômatos
             </button>
-            <button className="action-btn">Rever Erros</button>
-            <button className="action-btn">Quiz de DFA</button>
+            <button className="action-btn" onClick={() => handleNodeClick(1)}>
+              Continuar Fase 1
+            </button>
+            <button className="action-btn" onClick={() => handleNodeClick(2)}>
+              Iniciar Fase 2
+            </button>
           </div>
         </div>
 
@@ -428,8 +564,8 @@ const Path_player: React.FC = () => {
           onClose={handleCloseTask}
           taskData={selectedTask}
           onStartLesson={
-            selectedTask.title.includes("Construção de Autômato")
-              ? handleStartAutomatonLesson
+            selectedTask.title.includes("Prática") 
+              ? handleStartAutomatonLesson 
               : handleStartLesson
           }
         />
