@@ -180,3 +180,22 @@ export const checkAchievements = async (req, res) => {
   }
 };
 
+export const saveDiagnosticAnswers = async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { user_id, answers } = req.body;
+
+    for (const ans of answers) {
+      await db.run(
+        `INSERT INTO diagnostic_answers (user_id, question, answer, correct_answer)
+         VALUES (?, ?, ?, ?)`,
+        [user_id || null, ans.question, ans.answer, ans.correct_answer]
+      );
+    }
+
+    res.json({ message: "Respostas do diagnóstico salvas com sucesso!" });
+  } catch (err) {
+    console.error("❌ Erro ao salvar diagnóstico:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

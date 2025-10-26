@@ -1,13 +1,92 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import "./index.css"
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./index.css";
+
+interface Question {
+  question: string;
+  correct_answer: string;
+}
+
+const questions: Question[] = [
+  {
+    question:
+      "Um autômato finito determinístico possui apenas uma transição possível para cada símbolo de entrada em um estado.",
+    correct_answer: "Verdadeiro",
+  },
+  {
+    question: "Um autômato não determinístico pode ser transformado em um determinístico equivalente.",
+    correct_answer: "Verdadeiro",
+  },
+  {
+    question: "A linguagem gerada por uma gramática regular é sempre reconhecível por um autômato finito.",
+    correct_answer: "Verdadeiro",
+  },
+  {
+    question: "Gramáticas livres de contexto são equivalentes aos autômatos finitos determinísticos.",
+    correct_answer: "Falso",
+  },
+  {
+    question: "O lema do bombeamento pode ser usado para provar que uma linguagem é regular.",
+    correct_answer: "Falso",
+  },
+  {
+    question: "Todo autômato determinístico é também não determinístico.",
+    correct_answer: "Verdadeiro",
+  },
+];
 
 const Index: React.FC = () => {
-  const [activeTopic, setActiveTopic] = useState<string | null>(null)
-  const navigate = useNavigate()
+  const [showModal, setShowModal] = useState(false);
+  const [step, setStep] = useState<"choose" | "login" | "diagnostic" | "done">("choose");
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [score, setScore] = useState(0);
+  const navigate = useNavigate();
+
+  const handleAnswer = (value: string) => {
+    const correct = questions[currentQuestion].correct_answer === value;
+    setAnswers({ ...answers, [currentQuestion]: value });
+
+    if (correct) {
+      setScore((s) => s + 1);
+      setFeedback("correct");
+    } else {
+      setFeedback("wrong");
+    }
+
+    // aguarda o feedback antes de ir pra próxima
+    setTimeout(() => {
+      setFeedback(null);
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion((q) => q + 1);
+      } else {
+        handleSubmit();
+      }
+    }, 1500);
+  };
+
+  const handleSubmit = async () => {
+    const formatted = questions.map((q, idx) => ({
+      question: q.question,
+      answer: answers[idx] || "",
+      correct_answer: q.correct_answer,
+    }));
+
+    await fetch("http://localhost:5000/api/users/diagnostic", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: null, answers: formatted }),
+    });
+
+    setStep("done");
+    setTimeout(() => {
+      setShowModal(false);
+      navigate("/path");
+    }, 2500);
+  };
 
   const topics = [
     {
@@ -34,7 +113,7 @@ const Index: React.FC = () => {
       complexity: "Tese de Church-Turing",
       icon: "🖥️",
     },
-  ]
+  ];
 
   const features = [
     {
@@ -57,114 +136,180 @@ const Index: React.FC = () => {
       description: "Conteúdo adaptado ao seu conhecimento em teoria da computação.",
       icon: "🛤️",
     },
-  ]
+  ];
 
   return (
     <div className="index-container">
-      {/* Seção Principal (Hero) */}
+      {/* HERO */}
       <section className="hero-section">
         <div className="hero-content">
           <h1 className="hero-title">
-            Domine os <span className="highlight">Fundamentos da Computação</span> como nunca antes
+            Domine os <span className="highlight">Fundamentos da Computação</span>
           </h1>
           <p className="hero-subtitle">
-            Aprenda teoria da computação por meio de lições visuais, demonstrações interativas e uma abordagem prática.
-            Descubra o poder dos autômatos, linguagens formais e máquinas teóricas.
+            Aprenda teoria da computação com lições visuais e práticas interativas.
           </p>
           <div className="hero-buttons">
-            <button className="cta-primary" onClick={() => navigate("/path")}>
+            <button className="cta-primary" onClick={() => { setShowModal(true); setStep("choose"); }}>
               Começar a Aprender
             </button>
-            <button className="cta-secondary">Ver Demonstração</button>
-          </div>
-        </div>
-        <div className="hero-visual">
-          <div className="algorithm-preview">
-            <div className="sorting-bars">
-              {[40, 20, 60, 30, 80, 10, 50].map((height, index) => (
-                <div key={index} className="bar" style={{ height: `${height}px` }} />
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Seção de Tópicos Teóricos */}
+      {/* TOPICS */}
       <section className="algorithms-section">
-        <h2 className="section-title">Explore os Fundamentos da Computação</h2>
-        <p className="section-subtitle">
-          Aprofunde-se nos principais conceitos da teoria da computação e compreenda os limites do que é computável.
-        </p>
+        <h2 className="section-title">Explore os Fundamentos</h2>
         <div className="algorithms-grid">
-          {topics.map((topic, index) => (
-            <div
-              key={index}
-              className={`algorithm-card ${activeTopic === topic.name ? "active" : ""}`}
-              onMouseEnter={() => setActiveTopic(topic.name)}
-              onMouseLeave={() => setActiveTopic(null)}
-            >
+          {topics.map((topic, i) => (
+            <div key={i} className="algorithm-card">
               <div className="algorithm-icon">{topic.icon}</div>
               <h3 className="algorithm-name">{topic.name}</h3>
               <p className="algorithm-description">{topic.description}</p>
-              <div className="algorithm-complexity">
-                <span className="complexity-label">Classificação:</span>
-                <span className="complexity-value">{topic.complexity}</span>
-              </div>
+              <span className="complexity-value">{topic.complexity}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Seção de Recursos */}
+      {/* FEATURES */}
       <section className="features-section">
         <h2 className="section-title">Por que escolher nossa plataforma?</h2>
         <div className="features-grid">
-          {features.map((feature, index) => (
-            <div key={index} className="feature-card">
-              <div className="feature-icon">{feature.icon}</div>
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-description">{feature.description}</p>
+          {features.map((f, i) => (
+            <div key={i} className="feature-card">
+              <div className="feature-icon">{f.icon}</div>
+              <h3>{f.title}</h3>
+              <p>{f.description}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Estatísticas */}
-      <section className="index-stats-section">
-        <div className="index-stats-container">
-          <div className="index-stat-item">
-            <div className="index-stat-number">10 mil+</div>
-            <div className="index-stat-label">Estudantes Explorando Teoria</div>
-          </div>
-          <div className="index-stat-item">
-            <div className="index-stat-number">50+</div>
-            <div className="index-stat-label">Tópicos e Simulações</div>
-          </div>
-          <div className="index-stat-item">
-            <div className="index-stat-number">95%</div>
-            <div className="index-stat-label">Taxa de Compreensão</div>
-          </div>
-          <div className="index-stat-item">
-            <div className="index-stat-number">4.9★</div>
-            <div className="index-stat-label">Avaliação dos Estudantes</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Seção Final (Chamada para Ação) */}
+      {/* CTA */}
       <section className="final-cta-section">
         <div className="cta-content">
-          <h2 className="cta-title">Pronto para mergulhar na Teoria da Computação?</h2>
-          <p className="cta-description">
-            Junte-se a milhares de estudantes que dominaram os fundamentos teóricos com nossa plataforma interativa.
-          </p>
-          <button className="cta-primary large" onClick={() => navigate("/path")}>
+          <h2 className="cta-title">Pronto para começar?</h2>
+          <button className="cta-primary large" onClick={() => { setShowModal(true); setStep("choose"); }}>
             Comece Gratuitamente
           </button>
         </div>
       </section>
-    </div>
-  )
-}
 
-export default Index
+      {/* MODAL */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            {/* Escolha inicial */}
+            {step === "choose" && (
+              <>
+                <h2>Você já utiliza a plataforma?</h2>
+                <p>Escolha uma das opções abaixo:</p>
+                <div className="modal-actions">
+                  <button className="confirm-btn" onClick={() => setStep("login")}>
+                    Sim, fazer login
+                  </button>
+                  <button className="confirm-btn-alt" onClick={() => setStep("diagnostic")}>
+                    Não, é minha primeira vez
+                  </button>
+                  <button className="cancel-btn" onClick={() => setShowModal(false)}>
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Login */}
+            {step === "login" && (
+              <div className="login-form">
+                <h2>Entrar na Plataforma</h2>
+                <input type="email" placeholder="E-mail" />
+                <input type="password" placeholder="Senha" />
+            
+                <div className="login-actions">
+                  <button
+                    className="cancel-btn"
+                    onClick={() => setStep("choose")}
+                  >
+                    Cancelar
+                  </button>
+            
+                  <button
+                    className="confirm-btn"
+                    onClick={() => {
+                      alert("Login simulado! Redirecionando...");
+                      navigate("/path");
+                    }}
+                  >
+                    Entrar
+                  </button>
+                </div>
+              </div>
+            )}
+            
+
+            {/* Diagnóstico */}
+            {step === "diagnostic" && (
+              <div className="diagnostic">
+                <div className="progress-bar">
+                  <div
+                    className="progress"
+                    style={{
+                      width: `${((currentQuestion + 1) / questions.length) * 100}%`,
+                    }}
+                  ></div>
+                </div>
+
+                <h2>Questionário Diagnóstico</h2>
+                <p className="progress-text">
+                  Pergunta {currentQuestion + 1} de {questions.length}
+                </p>
+                <p className="question-text">{questions[currentQuestion].question}</p>
+
+                <div className="answers">
+                  <button
+                    onClick={() => handleAnswer("Verdadeiro")}
+                    className="answer-btn"
+                    disabled={!!feedback}
+                  >
+                    Verdadeiro
+                  </button>
+                  <button
+                    onClick={() => handleAnswer("Falso")}
+                    className="answer-btn"
+                    disabled={!!feedback}
+                  >
+                    Falso
+                  </button>
+                </div>
+
+                {/* Feedback imediato */}
+                {feedback && (
+                  <div
+                    className={`feedback-message ${feedback === "correct" ? "correct" : "wrong"}`}
+                  >
+                    {feedback === "correct" ? "✅ Correto!" : "❌ Resposta incorreta!"}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Final */}
+            {step === "done" && (
+              <div className="diagnostic-finish">
+                <h2>🎉 Questionário concluído!</h2>
+                <p>
+                  Você acertou <strong>{score}</strong> de{" "}
+                  <strong>{questions.length}</strong> perguntas.
+                </p>
+                <p>Redirecionando para a plataforma...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Index;

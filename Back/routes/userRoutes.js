@@ -1,5 +1,5 @@
 //backend\routes\userRoutes.js
-
+import { saveDiagnosticAnswers } from "../controllers/userController.js";
 import express from "express";
 import {
   getUserProfile,
@@ -21,5 +21,7 @@ router.get("/leaderboard/all", getLeaderboard);
 // 🏆 Novas rotas de conquistas
 router.get("/:id/achievements", getUserAchievements);
 router.get("/:id/checkAchievements", checkAchievements);
+//resposta diagnostica
+router.post("/diagnostic", saveDiagnosticAnswers);
 
 export default router;

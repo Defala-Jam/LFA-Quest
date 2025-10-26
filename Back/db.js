@@ -58,6 +58,19 @@ await db.exec(`
   );
 `);
 
+// cria tabela para respostas do diagnóstico
+await db.exec(`
+  CREATE TABLE IF NOT EXISTS diagnostic_answers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    question TEXT,
+    answer TEXT,
+    correct_answer TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+`);
+
+
 // cria tabela relacional de conquistas desbloqueadas
 await db.exec(`
   CREATE TABLE IF NOT EXISTS user_achievements (
