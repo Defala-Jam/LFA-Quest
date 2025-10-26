@@ -93,27 +93,25 @@ const Path_player: React.FC = () => {
   }
 
   // Dados específicos para a lição de autômato
-const automatonLessonData = {
-  isAutomaton: true,
-  title: "Construção de Autômato Finito Determinístico",
-  content: "Construa seu autômato usando os estados e conexões abaixo.",
-  explanation: "Marque o estado inicial com → e estados finais com ⦻.",
-  question: "Construa o DFA conforme as instruções",
-  alternatives: [],       // não usado
-  correctAnswer: 0,       // só para TS
-  correctAutomaton: {
-    estados: [
-      { id: 1, nome: "q0", isInicial: true, isFinal: false },
-      { id: 2, nome: "q1", isInicial: false, isFinal: true },
-      { id: 3, nome: "q2", isInicial: false, isFinal: false }
-    ],
-    conexoes: [
-      { de: 1, para: 2, caractere: "a" },
-      { de: 2, para: 3, caractere: "b" },
-      { de: 3, para: 1, caractere: "a" }
-    ]
+  const automatonLessonData = {
+    isAutomaton: true,
+    title: "Construção de Autômato Finito Determinístico",
+    explanation: "Marque o estado inicial com → e estados finais com ⦻.",
+    alternatives: [],       // não usado
+    correctAnswer: 0,       // só para TS
+    correctAutomaton: {
+      conexoes: [
+        { de: 2, para: 3, caractere: "a" },
+        { de: 2, para: 6, caractere: "b" },
+        { de: 3, para: 5, caractere: "a" },
+        { de: 5, para: 2, caractere: "b" },
+        { de: 5, para: 5, caractere: "a" },
+        { de: 6, para: 7, caractere: "a" },
+        { de: 7, para: 6, caractere: "b" },
+        { de: 7, para: 7, caractere: "a" }
+      ]
+    }
   }
-}
   
 
 
