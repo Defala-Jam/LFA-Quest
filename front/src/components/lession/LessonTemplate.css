@@ -7,6 +7,68 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
+/* ====== Botão de validar (AUTÔMATO) ====== */
+.automaton-simple-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.btn-validar {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-validar:hover {
+  background-color: #1976D2;
+}
+
+.validacao-resultado {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 5px solid;
+}
+
+.validacao-resultado.valido {
+  background-color: #E8F5E8;
+  border-left-color: #4CAF50;
+}
+
+.validacao-resultado.invalido {
+  background-color: #FFEBEE;
+  border-left-color: #F44336;
+}
+
+.validacao-resultado h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.validacao-detalhes {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mensagem-validacao {
+  padding: 5px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.mensagem-validacao:last-child {
+  border-bottom: none;
+}
+
+
 /* ====== LADO DIREITO (AUTÔMATO) ====== */
 .lesson-right {
   flex: 1;
@@ -142,17 +204,17 @@
   filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
 }
 
-/* Estilos para autorreflexão */
-.seta-autorreflexao {
-  pointer-events: visible;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
+  /* Estilos para autorreflexão */
+  .seta-autorreflexao {
+    pointer-events: visible;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-.seta-autorreflexao:hover path {
-  stroke-width: 4;
-  filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.7));
-}
+  .seta-autorreflexao:hover path {
+    stroke-width: 4;
+    filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.7));
+  }
 
 /* ====== CARACTERES DAS CONEXÕES - CORRIGIDO ====== */
 .caractere-conexao {

@@ -1,4 +1,5 @@
 export const lessonsData = [
+  //nó 1
   {
     id: 1,
     title: "Bubble Sort",
@@ -56,6 +57,8 @@ export const lessonsData = [
       }
     ]
   },
+
+  //nó 2
   {
     id: 2,
     title: "Insertion Sort",
@@ -116,5 +119,46 @@ export const lessonsData = [
           "O Insertion Sort é um algoritmo estável (não muda a ordem de iguais) e iterativo, com implementação simples e direta."
       }
     ]
+  },
+  
+  // questão 3 — Automato
+  {
+    id: 3,
+    title: "Autômato: Reconhecendo 'ab'",
+    questions: [
+      {
+        isAutomaton: true, // 🔹 Indica que é uma lição interativa
+        question: "Construa um autômato que reconheça todas as cadeias que contêm a substring 'ab'.",
+        correctAutomaton: {
+          estados: [
+            { id: 1, nome: "q0", isInicial: true, isFinal: false },
+            { id: 2, nome: "q1", isInicial: false, isFinal: false },
+            { id: 3, nome: "q2", isInicial: false, isFinal: true }
+          ],
+          conexoes: [
+            { de: 1, para: 1, caractere: "b" },
+            { de: 1, para: 2, caractere: "a" },
+            { de: 2, para: 3, caractere: "b" },
+            { de: 2, para: 2, caractere: "a" },
+            { de: 3, para: 3, caractere: "a" },
+            { de: 3, para: 3, caractere: "b" }
+          ]
+        },
+        explanation: `
+          O autômato deve reconhecer todas as cadeias que contenham o padrão 'ab'.
+          - **q0** é o estado inicial, representando que ainda não encontramos um 'a'.
+          - **q1** representa que já lemos um 'a'.
+          - **q2** é o estado final, alcançado quando encontramos o padrão 'ab'.
+
+          Transições:
+          - De q0, lendo 'a' → vai para q1.
+          - De q0, lendo 'b' → permanece em q0.
+          - De q1, lendo 'a' → permanece em q1.
+          - De q1, lendo 'b' → vai para q2 (achamos 'ab').
+          - De q2, lendo 'a' ou 'b' → permanece em q2.
+        `
+      }
+    ]
   }
+
 ]

@@ -93,21 +93,29 @@ const Path_player: React.FC = () => {
   }
 
   // Dados específicos para a lição de autômato
-  const automatonLessonData = {
-    title: "Construção de Autômato Finito Determinístico",
-    content:
-      "Nesta lição prática, você irá construir um autômato finito determinístico arrastando estados e criando transições.",
-    explanation:
-      "Use os 8 estados disponíveis (1, 2, 3, 1,2, 1,3, 2,3, 1,2,3) para construir seu autômato. Marque o estado inicial com a seta (→) e os estados finais com o círculo duplo (⦻). Crie transições entre os estados e defina os caracteres de transição.",
-    question: "Construa o autômato finito determinístico conforme as instruções:",
-    alternatives: [
-      "Estado 1 como inicial",
-      "Estado 1,2,3 como final", 
-      "Transições com caracteres 'a' e 'b'",
-      "Todos os estados conectados adequadamente"
+const automatonLessonData = {
+  isAutomaton: true,
+  title: "Construção de Autômato Finito Determinístico",
+  content: "Construa seu autômato usando os estados e conexões abaixo.",
+  explanation: "Marque o estado inicial com → e estados finais com ⦻.",
+  question: "Construa o DFA conforme as instruções",
+  alternatives: [],       // não usado
+  correctAnswer: 0,       // só para TS
+  correctAutomaton: {
+    estados: [
+      { id: 1, nome: "q0", isInicial: true, isFinal: false },
+      { id: 2, nome: "q1", isInicial: false, isFinal: true },
+      { id: 3, nome: "q2", isInicial: false, isFinal: false }
     ],
-    correctAnswer: 0,
+    conexoes: [
+      { de: 1, para: 2, caractere: "a" },
+      { de: 2, para: 3, caractere: "b" },
+      { de: 3, para: 1, caractere: "a" }
+    ]
   }
+}
+  
+
 
   if (isLessonActive) {
     return (
