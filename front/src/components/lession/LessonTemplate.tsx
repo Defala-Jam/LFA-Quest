@@ -8,7 +8,7 @@ import axios from "axios";
 
 interface LessonData {
   title: string;
-  question: string;
+  question?: string;
   alternatives: string[];
   correctAnswer: number;
   explanation?: string;
