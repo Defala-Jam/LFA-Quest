@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import storeRoutes from "./routes/storeRoutes.js";
@@ -9,7 +8,11 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import lessonRoutes from "./routes/lessonRoutes.js";
 
+// ⚠️ Remover daqui (estava antes da criação do app)
+
+// Utilidades e configuração do .env
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -31,7 +34,7 @@ console.log("📁 Caminho .env:", path.join(__dirname, ".env"));
 console.log("🧩 Variáveis de ambiente disponíveis:", process.env);
 console.log("🔐 JWT_SECRET carregado:", process.env.JWT_SECRET);
 
-
+// ✅ Agora sim, cria o app primeiro
 const app = express();
 
 app.use(
@@ -42,7 +45,8 @@ app.use(
 );
 app.use(express.json());
 
-// Rotas principais
+// ✅ E só depois usa o app
+app.use("/api/lesson", lessonRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/store", storeRoutes);
@@ -61,5 +65,6 @@ app.listen(PORT, () => {
   console.log(`   → /api/auth`);
   console.log(`   → /api/users`);
   console.log(`   → /api/store`);
+  console.log(`   → /api/lesson`);
   console.log("========================================");
 });

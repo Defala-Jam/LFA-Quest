@@ -2,7 +2,7 @@
   display: flex;
   min-height: 100vh;
   background: #1a2332;
-  gap: 24px; /* em vez de borda, apenas espaçamento */
+  gap: 24px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -29,7 +29,9 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Header Section */
+/* ===========================
+   CABEÇALHO E AVATAR
+   =========================== */
 .perfil-header {
   position: relative;
   height: 200px;
@@ -67,6 +69,9 @@
   font-size: 3rem;
 }
 
+/* ===========================
+   INFORMAÇÕES DO USUÁRIO
+   =========================== */
 .user-info-section {
   margin-bottom: 2rem;
 }
@@ -101,8 +106,9 @@
   margin: 0.5rem 0 0 0;
 }
 
-
-/* Badges Section */
+/* ===========================
+   CONQUISTAS (BADGES)
+   =========================== */
 .badges-section {
   margin-bottom: 2rem;
 }
@@ -170,7 +176,9 @@
   font-weight: bold;
 }
 
-/* Customization Section */
+/* ===========================
+   PERSONALIZAÇÃO DE PERFIL
+   =========================== */
 .customization-section {
   margin-bottom: 2rem;
 }
@@ -253,10 +261,13 @@
   font-size: 0.9rem;
 }
 
+/* ===========================
+   ESTATÍSTICAS PRINCIPAIS
+   =========================== */
 .widget-stats-cards {
   display: flex;
   justify-content: center;
-  gap:7rem;
+  gap: 7rem;
   align-items: center;
   padding: 1rem;
   background: #2a3441;
@@ -265,8 +276,9 @@
   margin-bottom: 2rem;
 }
 
-
-/* Settings Section */
+/* ===========================
+   SEÇÃO DE CONFIGURAÇÕES
+   =========================== */
 .settings-section {
   margin-bottom: 2rem;
 }
@@ -337,7 +349,9 @@ input:checked + .toggle-slider:before {
   transform: translateX(26px);
 }
 
-/* Action Buttons */
+/* ===========================
+   BOTÕES DE AÇÃO
+   =========================== */
 .action-buttons {
   display: flex;
   gap: 1rem;
@@ -377,3 +391,110 @@ input:checked + .toggle-slider:before {
   transform: translateY(-2px);
 }
 
+/* ===========================
+   LOGOUT / MODAL
+   =========================== */
+.logout-widget {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #6b7280;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #6b7280b7;
+}
+
+/* Modal de confirmação */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+}
+
+.logout-modal {
+  background: #0f172a;
+  color: white;
+  width: min(92vw, 420px);
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.logout-modal h2 {
+  margin-bottom: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 1.2rem;
+}
+
+.confirm-btn {
+  width: 130px;
+  height: 50px;
+  background: #10b981;
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.confirm-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.confirm-btn:active {
+  transform: translateY(1px);
+}
+
+.cancel-btn {
+  width: 130px;
+  height: 42px;
+  background: #6b7280;
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cancel-btn:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.cancel-btn:active {
+  transform: translateY(1px);
+}
