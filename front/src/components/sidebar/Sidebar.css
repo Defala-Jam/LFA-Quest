@@ -83,3 +83,18 @@
     padding: 10px 12px;
   }
 }
+
+/* 🔒 Itens bloqueados (sem login) */
+.nav-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-item.locked:hover {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.nav-item.locked .nav-icon {
+  filter: grayscale(1);
+}
