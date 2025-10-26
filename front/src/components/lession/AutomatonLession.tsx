@@ -29,7 +29,7 @@ interface Conexao {
   ativa: boolean;
   direcao: string;
   tipo: 'normal' | 'autorreflexao';
-  caractere: string; // Novo campo para caractere da conexão
+  caractere: string;
 }
 
 const BolaArrastavel = () => {
@@ -242,93 +242,85 @@ const BolaArrastavel = () => {
     };
   }, [bolas]);
 
-  // Mecânica de Conexões com Seleção Visual
   const ativarModoConectar = () => {
     setModoConectar(true);
     setBolaSelecionada(null);
     setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
   };
 
-const desativarModoConectar = () => {
-  setModoConectar(false);
-  setEstadoSelecionado(null);
-  setEstados(prev => prev.map(estado => ({ 
-    ...estado, 
-    selecionada: false 
-  })));
-};
-
-const clicarBola = (id: number) => {
-  if (!modoConectar) return;
-
-  if (bolaSelecionada === null) {
-    setBolaSelecionada(id);
-    setBolas(prev => prev.map(bola => 
-      bola.id === id ? { ...bola, selecionada: true } : { ...bola, selecionada: false }
-    ));
-  } else if (bolaSelecionada === id) {
-    // Autorreflexão - CORREÇÃO: limpar seleção
-    const conexaoId = `autorreflexao-${id}`;
-    
-    const conexaoExistente = conexoes.find(conexao => 
-      conexao.id === conexaoId
-    );
-
-    if (!conexaoExistente) {
-      const novaConexao: Conexao = {
-        id: conexaoId,
-        de: id,
-        para: id,
-        ativa: true,
-        direcao: `${id}→${id}`,
-        tipo: 'autorreflexao',
-        caractere: 'ε'
-      };
-      
-      setConexoes(prev => [...prev, novaConexao]);
-      setBolas(prev => prev.map(bola => 
-        bola.id === id ? { ...bola, conectada: true, selecionada: false } : bola
-      ));
-    }
-
-    // CORREÇÃO: Sempre limpar a seleção
+  const desativarModoConectar = () => {
+    setModoConectar(false);
     setBolaSelecionada(null);
     setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
-    setModoConectar(false);
-  } else {
-    // Conexão normal - CORREÇÃO: limpar seleção
-    const conexaoId = `conexao-${bolaSelecionada}-${id}`;
-    
-    const conexaoExistente = conexoes.find(conexao => 
-      conexao.id === conexaoId
-    );
+  };
 
-    if (!conexaoExistente) {
-      const novaConexao: Conexao = {
-        id: conexaoId,
-        de: bolaSelecionada,
-        para: id,
-        ativa: true,
-        direcao: `${bolaSelecionada}→${id}`,
-        tipo: 'normal',
-        caractere: 'a'
-      };
-      
-      setConexoes(prev => [...prev, novaConexao]);
+  const clicarBola = (id: number) => {
+    if (!modoConectar) return;
+
+    if (bolaSelecionada === null) {
+      setBolaSelecionada(id);
       setBolas(prev => prev.map(bola => 
-        (bola.id === bolaSelecionada || bola.id === id) 
-          ? { ...bola, conectada: true, selecionada: false } 
-          : bola
+        bola.id === id ? { ...bola, selecionada: true } : { ...bola, selecionada: false }
       ));
-    }
+    } else if (bolaSelecionada === id) {
+      const conexaoId = `autorreflexao-${id}`;
+      
+      const conexaoExistente = conexoes.find(conexao => 
+        conexao.id === conexaoId
+      );
 
-    // CORREÇÃO: Sempre limpar a seleção
-    setBolaSelecionada(null);
-    setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
-    setModoConectar(false);
-  }
-};
-  // Editar caractere de uma conexão
+      if (!conexaoExistente) {
+        const novaConexao: Conexao = {
+          id: conexaoId,
+          de: id,
+          para: id,
+          ativa: true,
+          direcao: `${id}→${id}`,
+          tipo: 'autorreflexao',
+          caractere: 'ε'
+        };
+        
+        setConexoes(prev => [...prev, novaConexao]);
+        setBolas(prev => prev.map(bola => 
+          bola.id === id ? { ...bola, conectada: true, selecionada: false } : bola
+        ));
+      }
+
+      setBolaSelecionada(null);
+      setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
+      setModoConectar(false);
+    } else {
+      const conexaoId = `conexao-${bolaSelecionada}-${id}`;
+      
+      const conexaoExistente = conexoes.find(conexao => 
+        conexao.id === conexaoId
+      );
+
+      if (!conexaoExistente) {
+        const novaConexao: Conexao = {
+          id: conexaoId,
+          de: bolaSelecionada,
+          para: id,
+          ativa: true,
+          direcao: `${bolaSelecionada}→${id}`,
+          tipo: 'normal',
+          caractere: 'A'
+        };
+        
+        setConexoes(prev => [...prev, novaConexao]);
+        setBolas(prev => prev.map(bola => 
+          (bola.id === bolaSelecionada || bola.id === id) 
+            ? { ...bola, conectada: true, selecionada: false } 
+            : bola
+        ));
+      }
+
+      setBolaSelecionada(null);
+      setBolas(prev => prev.map(bola => ({ ...bola, selecionada: false })));
+      setModoConectar(false);
+    }
+  };
+
   const iniciarEdicaoConexao = (conexaoId: string, caractereAtual: string) => {
     setEditandoConexao(conexaoId);
     setNovoCaractere(caractereAtual);
@@ -387,7 +379,6 @@ const clicarBola = (id: number) => {
     );
   };
 
-  // Calcular pontos para setas normais com espaçamento melhorado
   const calcularPontosSetaNormal = (deId: number, paraId: number, offset: number = 0) => {
     const bolaDe = bolas.find(bola => bola.id === deId);
     const bolaPara = bolas.find(bola => bola.id === paraId);
@@ -435,10 +426,10 @@ const clicarBola = (id: number) => {
       y: centroBolaPara.y - direcaoY * raioBola + perpendicularY * espacamento * Math.sign(offset)
     };
 
-    // Calcular ponto médio para posicionar o caractere
+    // POSIÇÃO CORRIGIDA - Mais próximo da seta
     const meio = {
-      x: (inicio.x + fim.x) / 2 + perpendicularY * 10, // Deslocar um pouco para o lado
-      y: (inicio.y + fim.y) / 2 - perpendicularX * 10
+      x: (inicio.x + fim.x) / 2 + perpendicularX * 8 * Math.sign(offset),
+      y: (inicio.y + fim.y) / 2 + perpendicularY * 8 * Math.sign(offset)
     };
 
     const tamanhoSeta = 12;
@@ -457,7 +448,6 @@ const clicarBola = (id: number) => {
     return { inicio, fim, ponta1, ponta2, direcaoX, direcaoY, meio };
   };
 
-  // Calcular pontos para autorreflexão com raio maior
   const calcularPontosAutorreflexao = (bolaId: number) => {
     const bola = bolas.find(b => b.id === bolaId);
     if (!bola || !bolaRefs.current[bolaId]) return null;
@@ -489,10 +479,10 @@ const clicarBola = (id: number) => {
       y: centro.y - raio * Math.sin(anguloFim)
     };
 
-    // Ponto para o caractere na autorreflexão
+    // POSIÇÃO CORRIGIDA - Mais próximo do loop
     const pontoCaractere = {
-      x: centro.x + raioLoop * 0.7,
-      y: centro.y - raioLoop * 0.7
+      x: centro.x + raioLoop * 0.35 + 8,
+      y: centro.y - raioLoop * 0.35 - 8
     };
 
     const tamanhoSeta = 10;
@@ -530,7 +520,6 @@ const clicarBola = (id: number) => {
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  // Nova lógica para determinar offset em conexões duplas
   const calcularOffsetConexaoDupla = (deId: number, paraId: number): number => {
     const hash = deId * 31 + paraId;
     return hash % 2 === 0 ? 1 : -1;
@@ -540,19 +529,16 @@ const clicarBola = (id: number) => {
     return existeConexao(bola1, bola2) && existeConexao(bola2, bola1);
   };
 
-  // Obter caractere da bola
   const getCaractereBola = (id: number): string => {
     const bola = bolas.find(b => b.id === id);
     return bola?.caractere || id.toString();
   };
 
-  // Obter caractere da conexão
   const getCaractereConexao = (deId: number, paraId: number): string => {
     const conexao = conexoes.find(c => c.de === deId && c.para === paraId);
     return conexao?.caractere || '';
   };
 
-  // Gerar resumo de todas as conexões possíveis
   const gerarResumoConexoes = () => {
     const resumo = [];
     for (let i = 0; i < bolas.length; i++) {
@@ -569,7 +555,6 @@ const clicarBola = (id: number) => {
           );
         }
       }
-      // Adicionar autorreflexão
       const bolaId = bolas[i].id;
       const autorreflexao = conexoes.find(c => c.de === bolaId && c.para === bolaId);
       resumo.push(
@@ -638,7 +623,6 @@ const clicarBola = (id: number) => {
                   fill="none"
                   markerEnd="url(#arrowhead-autorreflexao)"
                 />
-                {/* Texto do caractere na autorreflexão */}
                 <text
                   x={pontos.pontoCaractere.x}
                   y={pontos.pontoCaractere.y}
@@ -679,7 +663,6 @@ const clicarBola = (id: number) => {
                   `}
                   fill={conexao.ativa ? "#4CAF50" : "#FF5722"}
                 />
-                {/* Texto do caractere na conexão normal */}
                 <text
                   x={pontos.meio.x}
                   y={pontos.meio.y}

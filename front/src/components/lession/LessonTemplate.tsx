@@ -102,7 +102,7 @@ const AutomatonLesson: React.FC = () => {
   // Adicionar listener para tecla Delete
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.key === 'Delete') {
         if (conexaoSelecionada) {
           removerConexao(conexaoSelecionada);
           setConexaoSelecionada(null);
@@ -276,36 +276,53 @@ const AutomatonLesson: React.FC = () => {
   const clicarEstado = (id: number) => {
     // Duplo clique para definir estado inicial/final
     const handleDuploClique = () => {
-      setEstados(prev => prev.map(estado => {
-        if (estado.id === id) {
-          // Se já é inicial, torna final; se já é final, remove ambos; se nenhum, torna inicial
-          if (estado.isInicial) {
-            return { ...estado, isInicial: false, isFinal: true };
-          } else if (estado.isFinal) {
-            return { ...estado, isFinal: false };
-          } else {
-            return { ...estado, isInicial: true };
-          }
+      setEstados(prev => {
+        const clicado = prev.find(e => e.id === id);
+        if (!clicado) return prev;
+      
+        // 🔁 Alternância entre estados: normal → inicial → final → normal
+        if (clicado.isInicial) {
+          // Se já é inicial, torna final
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isInicial: false, isFinal: true }
+              : e
+          );
+        } else if (clicado.isFinal) {
+          // Se já é final, remove ambos
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isFinal: false }
+              : e
+          );
+        } else {
+          // Se é normal, torna inicial e remove inicial de todos os outros
+          return prev.map(e =>
+            e.id === id
+              ? { ...e, isInicial: true, isFinal: false }
+              : { ...e, isInicial: false }
+          );
         }
-        return estado;
-      }));
+      });
     };
-
+  
     // Clique simples para modo conectar
     if (modoConectar) {
       if (estadoSelecionado === null) {
         setEstadoSelecionado(id);
-        setEstados(prev => prev.map(estado => 
-          estado.id === id ? { ...estado, selecionada: true } : { ...estado, selecionada: false }
-        ));
+        setEstados(prev =>
+          prev.map(estado =>
+            estado.id === id
+              ? { ...estado, selecionada: true }
+              : { ...estado, selecionada: false }
+          )
+        );
       } else if (estadoSelecionado === id) {
         // Autorreflexão
         const conexaoId = `autorreflexao-${id}`;
-        
-        const conexaoExistente = conexoes.find(conexao => 
-          conexao.id === conexaoId
-        );
-
+      
+        const conexaoExistente = conexoes.find(conexao => conexao.id === conexaoId);
+      
         if (!conexaoExistente) {
           const novaConexao: Conexao = {
             id: conexaoId,
@@ -316,20 +333,19 @@ const AutomatonLesson: React.FC = () => {
             tipo: 'autorreflexao',
             caractere: 'ε'
           };
-          
+        
           setConexoes(prev => [...prev, novaConexao]);
+          desativarModoConectar();
         }
-
+      
         setEstadoSelecionado(null);
         setModoConectar(false);
       } else {
         // Conexão normal
         const conexaoId = `conexao-${estadoSelecionado}-${id}`;
-        
-        const conexaoExistente = conexoes.find(conexao => 
-          conexao.id === conexaoId
-        );
-
+      
+        const conexaoExistente = conexoes.find(conexao => conexao.id === conexaoId);
+      
         if (!conexaoExistente) {
           const novaConexao: Conexao = {
             id: conexaoId,
@@ -340,12 +356,13 @@ const AutomatonLesson: React.FC = () => {
             tipo: 'normal',
             caractere: 'a'
           };
-          
+        
           setConexoes(prev => [...prev, novaConexao]);
         }
-
+      
         setEstadoSelecionado(null);
         setModoConectar(false);
+        desativarModoConectar();
       }
     } else {
       // Clique simples normal - não faz nada especial
@@ -542,21 +559,12 @@ const AutomatonLesson: React.FC = () => {
         }}
       >
         <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="9"
-            refY="3.5"
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50" />
-          </marker>
+
           <marker
             id="arrowhead-autorreflexao"
             markerWidth="8"
             markerHeight="6"
-            refX="7"
+            refX="6"
             refY="3"
             orient="auto"
           >
@@ -590,8 +598,8 @@ const AutomatonLesson: React.FC = () => {
                   markerEnd="url(#arrowhead-autorreflexao)"
                 />
                 <text
-                  x={pontos.pontoCaractere.x}
-                  y={pontos.pontoCaractere.y}
+                  x={pontos.pontoCaractere.x + 4}
+                  y={pontos.pontoCaractere.y + 85}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   className="caractere-conexao"
@@ -752,7 +760,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         </div>
 
         <div className="lesson-content">
-          <h2 className="content-heading"></h2>
+          <h2 className="content-heading">📘 Explicação / Teoria</h2>
           {lessonData.explanation ? (
             <p>{lessonData.explanation}</p>
           ) : (
