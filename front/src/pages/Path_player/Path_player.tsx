@@ -221,6 +221,7 @@ const Path_player: React.FC = () => {
       if (!userData) return;
 
       try {
+        console.log("enviando dados")
         const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
         const data = await res.json();
 
@@ -235,9 +236,8 @@ const Path_player: React.FC = () => {
         console.error("Erro ao verificar conquistas:", err);
       }
     } else {
-      // Próxima questão - continuar sem mostrar resumo
+      console.log("só passando para a próxima")
       setCurrentQuestionIndex(prev => prev + 1);
-      // A lição continua ativa para a próxima questão
     }
   };
 

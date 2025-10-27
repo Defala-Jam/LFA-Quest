@@ -450,6 +450,29 @@
   margin-bottom: 1rem;
 }
 
+.lesson-image-container {
+  margin: 20px 0;
+  text-align: center;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+/* Para responsividade */
+@media (max-width: 768px) {
+  .lesson-image {
+    max-height: 200px;
+  }
+}
+
+
 /* ====== ALTERNATIVAS ====== */
 .alternatives-list {
   display: flex;

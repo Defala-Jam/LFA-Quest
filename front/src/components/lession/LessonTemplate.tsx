@@ -12,6 +12,7 @@ interface LessonData {
   alternatives: string[];
   correctAnswer: number;
   explanation?: string;
+  image?: string;
   isAutomaton?: boolean;
   correctAutomaton?: {
     conexoes: Array<{
@@ -171,7 +172,6 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
     setIsSubmitted(true);
   };
 
-  // 📤 Envia o resultado da lição ao backend e atualiza user localStorage
   const handleLessonComplete = async (correctAnswers: number, totalQuestions: number) => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -209,6 +209,7 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
     } catch (err) {
       console.error("❌ Erro ao registrar lição:", err);
     }
+    onComplete()
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -225,10 +226,9 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
   const handleContinue = async () => {
     const correctCount = isCorrect ? 1 : 0;
     const totalCount = 1;
-    
+
     setAnswers((prev) => [...prev, isCorrect || false]);
     await handleLessonComplete(correctCount, totalCount);
-    setShowSummary(true);
   };
 
   // 🏁 Tela de resumo da lição
@@ -288,11 +288,23 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
           </button>
           <h1 className="lesson-title">{lessonData.title}</h1>
         </div>
-
+          
         <div className="lesson-content">
           <h2 className="content-heading">📘 Explicação / Teoria</h2>
           {lessonData.explanation ? (
-            <p>{lessonData.explanation}</p>
+            <div>
+              <p>{lessonData.explanation}</p>
+              {/* ✅ Exibir imagem se existir */}
+              {lessonData.image && (
+                <div className="lesson-image-container">
+                  <img 
+                    src={lessonData.image} 
+                    alt="Ilustração da questão" 
+                    className="lesson-image"
+                  />
+                </div>
+              )}
+            </div>
           ) : (
             <p style={{ color: "#64748b" }}>
               Nenhuma explicação disponível para esta pergunta.
