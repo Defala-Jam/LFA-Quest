@@ -9,8 +9,8 @@ const dbPromise = open({
 
 (async () => {
   const db = await dbPromise;
-
-  // cria tabela users se não existir (com as colunas novas)
+ 
+  // cria tabela users e user_questions se não existir (com as colunas novas)
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,6 +23,17 @@ const dbPromise = open({
       last_completed_date TEXT DEFAULT NULL,
       selected_avatar INTEGER DEFAULT 0,
       selected_background INTEGER DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS user_questions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      question_id TEXT NOT NULL,
+      tags TEXT DEFAULT '[]',
+      is_correct INTEGER NOT NULL,
+      time_taken INTEGER DEFAULT 0,
+      answered_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
 

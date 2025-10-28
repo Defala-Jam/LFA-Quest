@@ -21,6 +21,7 @@ interface LessonData {
       caractere: string;
     }>;
   };
+  tags?: string[];
 }
 
 interface LessonTemplateProps {
@@ -29,7 +30,7 @@ interface LessonTemplateProps {
   onExit: () => void;
   isAutomaton?: boolean;
 
-  // 🔹 Novas props adicionadas:
+  // Novas props
   questionIndex: number;
   totalQuestions: number;
 }
@@ -56,6 +57,7 @@ interface AnsweredQuestion {
   selectedAnswer?: number | null;
   correctAnswer?: number;
   tags?: string[];
+  timeTaken: number;
 }
 
 const LessonTemplate: React.FC<LessonTemplateProps> = ({
@@ -71,7 +73,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [showSummary, setShowSummary] = useState(false);
-  const [answers, setAnswers] = useState<boolean[]>([]);
   const [lessonResult, setLessonResult] = useState<{
     diamonds: number;
     xp: number;
@@ -84,7 +85,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   useEffect(() => {
     setStartTime(Date.now());
     setShowSummary(false);
-    setAnswers([]);
     setLessonResult(null);
     setUserAutomaton(null);
     setIsSubmitted(false);
@@ -92,10 +92,8 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     setSelectedAnswer(null);
   }, [lessonData]);
 
-  // ✅ Saber se é a última pergunta
   const isLastQuestion = questionIndex + 1 === totalQuestions;
 
-  // ✅ Função de validação de autômato
   const validateAutomaton = (userConexoes: Array<{ de: number; para: number; caractere: string }>) => {
     if (!lessonData.correctAutomaton) return false;
 
@@ -108,8 +106,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         return a.caractere.localeCompare(b.caractere);
       });
 
-    const isEqual = JSON.stringify(normalize(userConexoes)) === JSON.stringify(normalize(correctConexoes));
-    return isEqual;
+    return JSON.stringify(normalize(userConexoes)) === JSON.stringify(normalize(correctConexoes));
   };
 
   const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
@@ -151,16 +148,25 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     setIsSubmitted(true);
   };
 
-  const handleLessonComplete = async (correctAnswers: number, totalQuestions: number) => {
+  const handleLessonComplete = async () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     try {
       console.log("📤 Requisição: finalização de lição");
-      const response = await axios.post("http://localhost:5000/api/lesson/complete", {
+
+      const payload = {
         user_id: user.id,
-        correct_answers: correctAnswers,
-        total_questions: totalQuestions,
-      });
+        correct_answers: answeredQuestions.filter(q => q.isCorrect).length,
+        total_questions: answeredQuestions.length,
+        questions: answeredQuestions.map(q => ({
+          questionId: q.questionId,
+          isCorrect: q.isCorrect,
+          tags: q.tags || [],
+          timeTaken: q.timeTaken,
+        })),
+      };
+
+      const response = await axios.post("http://localhost:5000/api/lesson/complete", payload);
 
       const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } = response.data;
 
@@ -194,35 +200,33 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   };
 
   const handleContinue = async () => {
+    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+
     const currentQuestion: AnsweredQuestion = {
       questionId: lessonData.title.replace(/\s+/g, "_").toLowerCase(),
       isCorrect: !!isCorrect,
       selectedAnswer,
       correctAnswer: lessonData.correctAnswer,
-      tags: [],
+      tags: lessonData.tags || [],
+      timeTaken,
     };
 
     const updatedAnswers = [...answeredQuestions, currentQuestion];
     setAnsweredQuestions(updatedAnswers);
 
-    // ✅ Só chama o backend se for a última
     if (isLastQuestion) {
-      const correctCount = updatedAnswers.filter(q => q.isCorrect).length;
-      const totalCount = updatedAnswers.length;
-
-      await handleLessonComplete(correctCount, totalCount);
+      await handleLessonComplete();
       setShowSummary(true);
     } else {
       onComplete();
     }
   };
 
-  // 🏁 Tela de resumo
   if (showSummary) {
     const total = answeredQuestions.length || 1;
     const correct = answeredQuestions.filter(q => q.isCorrect).length;
     const wrong = total - correct;
-    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+    const totalTime = answeredQuestions.reduce((acc, q) => acc + q.timeTaken, 0);
 
     return (
       <div className="summary-container">
@@ -231,7 +235,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
           <h2>{lessonData.title}</h2>
 
           <p>
-            Você respondeu <b>{total}</b> pergunta{total > 1 ? "s" : ""} em <b>{timeTaken}</b> segundos.
+            Você respondeu <b>{total}</b> pergunta{total > 1 ? "s" : ""} em <b>{totalTime}</b> segundos.
           </p>
           <p>
             ✅ Acertos: <b>{correct}</b> &nbsp;&nbsp; ❌ Erros: <b>{wrong}</b>
@@ -261,7 +265,6 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     );
   }
 
-  // 🧠 Tela principal
   return (
     <div className="lesson-container">
       <div className="lesson-left">
@@ -324,9 +327,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
               {lessonData.alternatives.map((alt, i) => (
                 <button
                   key={i}
-                  className={`alternative-button ${
-                    selectedAnswer === i ? "selected" : ""
-                  } ${
+                  className={`alternative-button ${selectedAnswer === i ? "selected" : ""} ${
                     isSubmitted
                       ? i === lessonData.correctAnswer
                         ? "correct"

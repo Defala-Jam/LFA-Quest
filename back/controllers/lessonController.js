@@ -18,7 +18,7 @@ function getDaysDiff(date1, date2) {
 
 export const completeLesson = async (req, res) => {
   try {
-    const { user_id, correct_answers, total_questions } = req.body;
+    const { user_id, correct_answers, total_questions, questions } = req.body;
     const db = await dbPromise;
 
     // Verifica se o usuário existe
@@ -29,13 +29,12 @@ export const completeLesson = async (req, res) => {
     // 1️⃣ Calcula XP e diamantes
     // ===============================
     const xpEarned = correct_answers * 10;      // 10 XP por acerto
-    const diamondsEarned = correct_answers * 1000000000000000; // 2 diamantes por acerto
+    const diamondsEarned = correct_answers * 2; // 2 diamantes por acerto
 
     // ===============================
     // 2️⃣ Lógica da Ofensiva (Streak)
     // ===============================
-    const today = new Date().toISOString().split("T")[0]; // data real de hoje
-// YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const lastCompleted = user.last_completed_date;
     let streakCount = user.streak_count || 0;
 
@@ -43,22 +42,18 @@ export const completeLesson = async (req, res) => {
       const diffDays = getDaysDiff(today, lastCompleted);
 
       if (diffDays === 0) {
-        // Mesmo dia → mantém streak
         streakCount = user.streak_count;
       } else if (diffDays === 1) {
-        // Ontem → incrementa streak
         streakCount = user.streak_count + 1;
       } else {
-        // Mais de 1 dia → reseta streak
         streakCount = 1;
       }
     } else {
-      // Primeira lição → começa com 1
       streakCount = 1;
     }
 
     // ===============================
-    // 3️⃣ Atualiza o banco
+    // 3️⃣ Atualiza o banco do usuário
     // ===============================
     await db.run(
       `UPDATE users 
@@ -70,14 +65,36 @@ export const completeLesson = async (req, res) => {
       [xpEarned, diamondsEarned, streakCount, today, user_id]
     );
 
-    // Busca valores atualizados
+    // ===============================
+    // 4️⃣ Salva respostas na tabela user_questions
+    // ===============================
+    if (Array.isArray(questions)) {
+      for (const q of questions) {
+        const { questionId, tags, isCorrect, timeTaken } = q;
+        await db.run(
+          `INSERT INTO user_questions (user_id, question_id, tags, is_correct, time_taken)
+           VALUES (?, ?, ?, ?, ?)`,
+          [
+            user_id,
+            questionId,
+            JSON.stringify(tags || []),
+            isCorrect ? 1 : 0,
+            timeTaken || 0
+          ]
+        );
+      }
+    }
+
+    // ===============================
+    // 5️⃣ Busca valores atualizados
+    // ===============================
     const updated = await db.get(
       "SELECT xp, diamonds, streak_count FROM users WHERE id = ?",
       [user_id]
     );
 
     // ===============================
-    // 4️⃣ Retorna resposta para o frontend
+    // 6️⃣ Retorna resposta para o frontend
     // ===============================
     res.json({
       message: "Lição concluída com sucesso!",
@@ -85,10 +102,11 @@ export const completeLesson = async (req, res) => {
       diamonds_earned: diamondsEarned,
       new_xp: updated.xp,
       new_diamonds: updated.diamonds,
-      new_streak: updated.streak_count,
+      new_streak: updated.streak_count
     });
   } catch (err) {
     console.error("❌ Erro no completeLesson:", err);
     res.status(500).json({ error: err.message });
   }
 };
+

@@ -32,6 +32,8 @@ Exemplo de notação: δ(A, x) = Y, lê-se "estando no estado A, lendo x, vai pa
   ],
 
   correctAnswer: 0,
+
+  tags: ["AFNDs", "percorrer caminhos", "AFND sem lambda no incial"]
 };
 
 // Questão 2 – POSCOMP 2009
@@ -51,6 +53,9 @@ Exemplo: S → ASb significa "S deriva ASb".`,
   ],
 
   correctAnswer: 3,
+  
+  tags: ["Gramática Regular", "derivações"]
+
 };
 
 // Questão 3 – POSCOMP 2012
@@ -64,6 +69,8 @@ export const lesson_fase1_q3 = {
   alternatives: ["12", "36", "64", "1024"],
 
   correctAnswer: 2,
+
+  tags: ["AFNDs", "propriedade dos autômatos"]
 };
 
 // Questão 4 – POSCOMP 2013
@@ -82,6 +89,8 @@ export const lesson_fase1_q4 = {
   ],
 
   correctAnswer: 3,
+
+  tags: ["AFNDs", "propriedade dos autômatos"]
 };
 
 // Questão 5 – ENADE 2005
@@ -99,7 +108,7 @@ export const lesson_fase1_q5 = {
   e o resultado final da expressão e, ainda, trata os operadores de exponenciação, multiplicação e divisão 
   com precedência sobre os operadores de soma e subtração. Para obter o referido software, é correto que o 
   projetista
-    
+
   I) defina uma cadeia de caracteres para armazenar e imprimir toda a expressão de entrada.
   II) defina uma gramática regular para identificar as expressões aritméticas válidas.
   III) defina um reconhecedor de linguagem regular com autômato finito determinístico.
@@ -114,6 +123,8 @@ export const lesson_fase1_q5 = {
   ],
 
   correctAnswer: 3,
+
+  tags: ["gramática Regular", "propriedades de gramática", "hierarquia de chomsky"]
 };
 
 export const lessonsFase1 = [
@@ -147,6 +158,8 @@ export const lesson_fase2_q1 = {
   ],
 
   correctAnswer: 3,
+
+  tags:["AFNDs", "percorrer caminhos", "AFND com lambda no incial"]
 };
 
 // Questão 2 – UFG 2024 (adaptada)
@@ -167,6 +180,8 @@ export const lesson_fase2_q2 = {
   ],
 
   correctAnswer: 3,
+
+  tags: ["AFNDs", "percorrer caminhos", "AFND sem lambda no incia"]
 };
 
 // Questão 3 – CESPE 2022
@@ -185,6 +200,8 @@ export const lesson_fase2_q3 = {
   ],
 
   correctAnswer: 2,
+
+  tags: ["AFDs", "propriedade dos autômatos"]
 };
 
 // Questão 4 – POSCOMP 2022 (Adaptada)
@@ -205,6 +222,8 @@ export const lesson_fase2_q4 = {
   ],
 
   correctAnswer: 2,
+
+  tags: ["AFDs", "percorrer caminhos"]
 };
 
 // Questão 5 – ENADE 2008
@@ -223,6 +242,8 @@ export const lesson_fase2_q5 = {
   ],
 
   correctAnswer: 3,
+
+  tags:["Gramática Regular", "derivações", "propriedades das gramáticas"]
 };
 
 export const lessonsFase2 = [
