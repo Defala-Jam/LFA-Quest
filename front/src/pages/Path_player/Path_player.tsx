@@ -407,38 +407,6 @@ const Path_player: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Ação rápida */}
-        <div className="quick-actions">
-          <button className="automaton-quick-btn" onClick={handleStartAutomatonLesson}>
-            🎮 Iniciar Prática de Autômato
-          </button>
-        </div>
-
-        {/* Progresso das Fases */}
-        <div className="phases-progress">
-          <div className="phase-card">
-            <h3>🧠 Fase 1: Fundamentos</h3>
-            <p>Conceitos básicos de autômatos e gramáticas</p>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: '60%' }}></div>
-            </div>
-            <button className="phase-btn" onClick={() => handleNodeClick(1)}>
-              Continuar Fase 1
-            </button>
-          </div>
-
-          <div className="phase-card">
-            <h3>⚡ Fase 2: Aplicações</h3>
-            <p>Questões avançadas e análise de autômatos</p>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: '30%' }}></div>
-            </div>
-            <button className="phase-btn" onClick={() => handleNodeClick(2)}>
-              Iniciar Fase 2
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Barra lateral direita */}

@@ -88,9 +88,23 @@ export const lesson_fase1_q4 = {
 export const lesson_fase1_q5 = {
   title: "ENADE 2005 — Expressões Aritméticas e Gramáticas",
 
-  explanation: `Para implementar um software que calcula expressões matemáticas simples respeitando precedência, é necessário definir corretamente as regras da gramática que descrevem as expressões e operadores.`,
+  explanation: `As gramáticas regulares são usadas para identificar tokens simples, 
+  enquanto a gramática livre de contexto define a estrutura da expressão, como a ordem de 
+  precedência dos operadores. Assim, expressões aritméticas completas devem ser descritas 
+  por uma gramática livre de contexto.`,
 
-  question: `Para que o software funcione corretamente, qual conjunto de definições de gramática o projetista deve usar?`,
+  question: `Considere a necessidade de se implementar um componente de software que realiza 
+  cálculos de expressões matemáticas simples para as operações básicas (soma, subtração, multiplicação, 
+  divisão e exponenciação). O software reproduz na tela do computador a entrada, os resultados parciais 
+  e o resultado final da expressão e, ainda, trata os operadores de exponenciação, multiplicação e divisão 
+  com precedência sobre os operadores de soma e subtração. Para obter o referido software, é correto que o 
+  projetista
+    
+  I) defina uma cadeia de caracteres para armazenar e imprimir toda a expressão de entrada.
+  II) defina uma gramática regular para identificar as expressões aritméticas válidas.
+  III) defina um reconhecedor de linguagem regular com autômato finito determinístico.
+  IV) especifique a ordem de precedência dos operadores com uma notação de gramática livre de contexto.
+  `,
 
   alternatives: [
     "defina I e II.",
