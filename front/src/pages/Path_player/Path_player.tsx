@@ -212,8 +212,6 @@ const Path_player: React.FC = () => {
 
     if (isLastQuestion) {
       // Última questão - mostrar resumo da fase
-      console.log(`🎉 Fase ${currentPhase} concluída!`);
-      setShowPhaseSummary(true);
       setIsLessonActive(false);
 
       // Verificar conquistas apenas quando a fase for completada
@@ -246,9 +244,7 @@ const Path_player: React.FC = () => {
     setPhaseAnswers([]);
   };
 
-  const handleIncorrectAnswer = () => {
-    console.log("Resposta incorreta - fornecer feedback adicional");
-  };
+
 
   // Obter lição atual baseada na fase e índice da questão
   const getCurrentLesson = () => {
@@ -332,16 +328,20 @@ const Path_player: React.FC = () => {
   // 🔹 LIÇÃO ATIVA
   // -------------------------
   if (isLessonActive) {
+    const currentLessons = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
+  
     return (
       <Lesson
         lessonData={getCurrentLesson()}
         onComplete={() => handleLessonComplete(true)}
         onExit={handleExitLesson}
-        onIncorrect={handleIncorrectAnswer}
         isAutomaton={currentLessonType === "automaton"}
+        questionIndex={currentQuestionIndex}
+        totalQuestions={currentLessons.length}
       />
     );
   }
+
 
   // -------------------------
   // 🔹 INTERFACE PRINCIPAL

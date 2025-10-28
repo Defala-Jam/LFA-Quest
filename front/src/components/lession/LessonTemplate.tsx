@@ -27,8 +27,11 @@ interface LessonTemplateProps {
   lessonData: LessonData;
   onComplete: () => void;
   onExit: () => void;
-  onIncorrect: () => void;
   isAutomaton?: boolean;
+
+  // 🔹 Novas props adicionadas:
+  questionIndex: number;
+  totalQuestions: number;
 }
 
 interface ValidationDetails {
@@ -47,13 +50,21 @@ interface ValidationDetails {
   mensagens: string[];
 }
 
-const LessonTemplate: React.FC<LessonTemplateProps> = 
-({
+interface AnsweredQuestion {
+  questionId: string;
+  isCorrect: boolean;
+  selectedAnswer?: number | null;
+  correctAnswer?: number;
+  tags?: string[];
+}
+
+const LessonTemplate: React.FC<LessonTemplateProps> = ({
   lessonData,
   onComplete,
   onExit,
-  onIncorrect,
   isAutomaton = false,
+  questionIndex,
+  totalQuestions,
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -68,6 +79,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> =
   } | null>(null);
   const [userAutomaton, setUserAutomaton] = useState<{ estados: Estado[]; conexoes: Conexao[] } | null>(null);
   const automatonLessonRef = useRef<{ handleValidar: () => any }>(null);
+  const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([]);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -80,93 +92,60 @@ const LessonTemplate: React.FC<LessonTemplateProps> =
     setSelectedAnswer(null);
   }, [lessonData]);
 
-// ✅ Função para validar o autômato - CORRIGIDA
-const validateAutomaton = (userConexoes: Array<{de: number; para: number; caractere: string}>) => {
-  if (!lessonData.correctAutomaton) return false;
+  // ✅ Saber se é a última pergunta
+  const isLastQuestion = questionIndex + 1 === totalQuestions;
 
-  const correctConexoes = lessonData.correctAutomaton.conexoes;
+  // ✅ Função de validação de autômato
+  const validateAutomaton = (userConexoes: Array<{ de: number; para: number; caractere: string }>) => {
+    if (!lessonData.correctAutomaton) return false;
 
-  console.log("Conexões do usuário:", userConexoes);
-  console.log("Conexões corretas:", correctConexoes);
-  
-  // ✅ Normalizar os caracteres para minúsculo antes de ordenar
-  const normalizedUser = userConexoes.map(conn => ({
-    de: conn.de,
-    para: conn.para,
-    caractere: conn.caractere.toLowerCase()
-  }));
+    const correctConexoes = lessonData.correctAutomaton.conexoes;
 
-  const normalizedCorrect = correctConexoes.map(conn => ({
-    de: conn.de,
-    para: conn.para,
-    caractere: conn.caractere.toLowerCase()
-  }));
+    const normalize = (arr: any[]) =>
+      arr.map(c => ({ ...c, caractere: c.caractere.toLowerCase() })).sort((a, b) => {
+        if (a.de !== b.de) return a.de - b.de;
+        if (a.para !== b.para) return a.para - b.para;
+        return a.caractere.localeCompare(b.caractere);
+      });
 
-  // Ordenar ambas as listas para comparação consistente
-  const sortedUser = [...normalizedUser].sort((a, b) => {
-    if (a.de !== b.de) return a.de - b.de;
-    if (a.para !== b.para) return a.para - b.para;
-    return a.caractere.localeCompare(b.caractere);
-  });
-
-  const sortedCorrect = [...normalizedCorrect].sort((a, b) => {
-    if (a.de !== b.de) return a.de - b.de;
-    if (a.para !== b.para) return a.para - b.para;
-    return a.caractere.localeCompare(b.caractere);
-  });
-
-  console.log("Usuário ordenado:", sortedUser);
-  console.log("Correto ordenado:", sortedCorrect);
-  console.log("Número de conexões - Usuário:", sortedUser.length, "Correto:", sortedCorrect.length);
-
-  // Comparação profunda
-  const isEqual = JSON.stringify(sortedUser) === JSON.stringify(sortedCorrect);
-  console.log("Resultado da validação:", isEqual);
-  
-  return isEqual;
-};
+    const isEqual = JSON.stringify(normalize(userConexoes)) === JSON.stringify(normalize(correctConexoes));
+    return isEqual;
+  };
 
   const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
     setUserAutomaton({ estados, conexoes });
   };
 
-  // ✅ Função para receber a validação do AutomatonLesson
   const handleAutomatonValidation = (isValid: boolean, message: string, details: ValidationDetails) => {
-    console.log("Validação recebida:", details);
-
-    // ✅ CONVERTE para Conexao[] antes de usar
     const userConnections: Conexao[] = details.conexoesValidas.map(conn => ({
       id: `conexao-${conn.de}-${conn.para}`,
       de: conn.de,
       para: conn.para,
       ativa: true,
       direcao: `${conn.de}→${conn.para}`,
-      tipo: 'normal',
-      caractere: conn.caractere
+      tipo: "normal",
+      caractere: conn.caractere,
     }));
 
-    setUserAutomaton({ 
+    setUserAutomaton({
       estados: details.estadosIniciais,
-      conexoes: userConnections 
+      conexoes: userConnections,
     });
 
-    // ✅ Valida usando as conexões recebidas
     const correct = validateAutomaton(details.conexoesValidas);
     setIsCorrect(correct);
     setIsSubmitted(true);
   };
 
-  // ✅ Nova função de submit para autômatos
   const handleAutomatonSubmit = () => {
     if (!userAutomaton) return;
-    
-    // Converte Conexao[] para o formato simplificado para validação
+
     const conexoesSimplificadas = userAutomaton.conexoes.map(conn => ({
       de: conn.de,
       para: conn.para,
-      caractere: conn.caractere
+      caractere: conn.caractere,
     }));
-    
+
     const correct = validateAutomaton(conexoesSimplificadas);
     setIsCorrect(correct);
     setIsSubmitted(true);
@@ -176,22 +155,15 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     try {
-      console.log("requisição finalização de lesson")
+      console.log("📤 Requisição: finalização de lição");
       const response = await axios.post("http://localhost:5000/api/lesson/complete", {
         user_id: user.id,
         correct_answers: correctAnswers,
         total_questions: totalQuestions,
       });
 
-      const {
-        diamonds_earned,
-        xp_earned,
-        new_xp,
-        new_diamonds,
-        new_streak,
-      } = response.data;
+      const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } = response.data;
 
-      // Atualiza localStorage com os novos totais
       const updatedUser = {
         ...user,
         xp: new_xp,
@@ -200,7 +172,6 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // Guarda o resultado da lição para exibir no resumo
       setLessonResult({
         diamonds: diamonds_earned,
         xp: xp_earned,
@@ -209,7 +180,6 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
     } catch (err) {
       console.error("❌ Erro ao registrar lição:", err);
     }
-    onComplete()
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -224,17 +194,33 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
   };
 
   const handleContinue = async () => {
-    const correctCount = isCorrect ? 1 : 0;
-    const totalCount = 1;
+    const currentQuestion: AnsweredQuestion = {
+      questionId: lessonData.title.replace(/\s+/g, "_").toLowerCase(),
+      isCorrect: !!isCorrect,
+      selectedAnswer,
+      correctAnswer: lessonData.correctAnswer,
+      tags: [],
+    };
 
-    setAnswers((prev) => [...prev, isCorrect || false]);
-    await handleLessonComplete(correctCount, totalCount);
+    const updatedAnswers = [...answeredQuestions, currentQuestion];
+    setAnsweredQuestions(updatedAnswers);
+
+    // ✅ Só chama o backend se for a última
+    if (isLastQuestion) {
+      const correctCount = updatedAnswers.filter(q => q.isCorrect).length;
+      const totalCount = updatedAnswers.length;
+
+      await handleLessonComplete(correctCount, totalCount);
+      setShowSummary(true);
+    } else {
+      onComplete();
+    }
   };
 
-  // 🏁 Tela de resumo da lição
+  // 🏁 Tela de resumo
   if (showSummary) {
-    const total = answers.length || 1;
-    const correct = answers.filter((a) => a).length;
+    const total = answeredQuestions.length || 1;
+    const correct = answeredQuestions.filter(q => q.isCorrect).length;
     const wrong = total - correct;
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
@@ -245,21 +231,18 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
           <h2>{lessonData.title}</h2>
 
           <p>
-            Você respondeu <b>{total}</b> pergunta{total > 1 ? "s" : ""} em{" "}
-            <b>{timeTaken}</b> segundos.
+            Você respondeu <b>{total}</b> pergunta{total > 1 ? "s" : ""} em <b>{timeTaken}</b> segundos.
           </p>
           <p>
             ✅ Acertos: <b>{correct}</b> &nbsp;&nbsp; ❌ Erros: <b>{wrong}</b>
           </p>
 
-          {/* 🎁 Exibe recompensas da lição */}
           {lessonResult && (
             <div className="reward-section">
               <p className="reward-text">💎 +{lessonResult.diamonds} diamantes</p>
               <p className="reward-text">⚡ +{lessonResult.xp} XP</p>
               <p className="reward-text fire-text">
-                🔥 Ofensiva atual: <b>{lessonResult.streak}</b> dia
-                {lessonResult.streak > 1 ? "s" : ""} seguidos!
+                🔥 Ofensiva atual: <b>{lessonResult.streak}</b> dia{lessonResult.streak > 1 ? "s" : ""} seguidos!
               </p>
             </div>
           )}
@@ -278,7 +261,7 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
     );
   }
 
-  // 🧠 Tela principal da lição
+  // 🧠 Tela principal
   return (
     <div className="lesson-container">
       <div className="lesson-left">
@@ -288,27 +271,20 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
           </button>
           <h1 className="lesson-title">{lessonData.title}</h1>
         </div>
-          
+
         <div className="lesson-content">
           <h2 className="content-heading">📘 Explicação / Teoria</h2>
           {lessonData.explanation ? (
             <div>
               <p>{lessonData.explanation}</p>
-              {/* ✅ Exibir imagem se existir */}
               {lessonData.image && (
                 <div className="lesson-image-container">
-                  <img 
-                    src={lessonData.image} 
-                    alt="Ilustração da questão" 
-                    className="lesson-image"
-                  />
+                  <img src={lessonData.image} alt="Ilustração da questão" className="lesson-image" />
                 </div>
               )}
             </div>
           ) : (
-            <p style={{ color: "#64748b" }}>
-              Nenhuma explicação disponível para esta pergunta.
-            </p>
+            <p style={{ color: "#64748b" }}>Nenhuma explicação disponível para esta pergunta.</p>
           )}
         </div>
       </div>
@@ -316,27 +292,21 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
       <div className="lesson-right">
         {isAutomaton ? (
           <div className="automaton-container">
-            <AutomatonLesson 
+            <AutomatonLesson
               ref={automatonLessonRef}
               onStateChange={handleAutomatonStateChange}
               onValidation={handleAutomatonValidation}
             />
-            
+
             {isSubmitted && (
-              <div
-                className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}
-              >
+              <div className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}>
                 {isCorrect ? "🎉 Parabéns! Autômato correto!" : "💭 Autômato incorreto! Tente novamente."}
               </div>
             )}
 
             <div className="action-buttons">
               {!isSubmitted ? (
-                <button
-                  className="submit-button"
-                  onClick={handleAutomatonSubmit}
-                  disabled={!userAutomaton}
-                >
+                <button className="submit-button" onClick={handleAutomatonSubmit} disabled={!userAutomaton}>
                   Validar Autômato
                 </button>
               ) : (
@@ -375,20 +345,14 @@ const validateAutomaton = (userConexoes: Array<{de: number; para: number; caract
             </div>
 
             {isSubmitted && (
-              <div
-                className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}
-              >
+              <div className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}>
                 {isCorrect ? "🎉 Parabéns! Resposta correta!" : "💭 Resposta incorreta!"}
               </div>
             )}
 
             <div className="action-buttons">
               {!isSubmitted ? (
-                <button
-                  className="submit-button"
-                  onClick={handleSubmit}
-                  disabled={selectedAnswer === null}
-                >
+                <button className="submit-button" onClick={handleSubmit} disabled={selectedAnswer === null}>
                   Confirmar Resposta
                 </button>
               ) : (
