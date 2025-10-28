@@ -102,6 +102,15 @@ export const lesson_fase1_q5 = {
   correctAnswer: 3,
 };
 
+export const lessonsFase1 = [
+  lesson_fase1_q1,
+  lesson_fase1_q2,
+  lesson_fase1_q3,
+  lesson_fase1_q4,
+  lesson_fase1_q5,
+];
+
+
 // =======================
 // 🔹 FASE 2
 // =======================
@@ -201,3 +210,11 @@ export const lesson_fase2_q5 = {
 
   correctAnswer: 3,
 };
+
+export const lessonsFase2 = [
+  lesson_fase2_q1,
+  lesson_fase2_q2,
+  lesson_fase2_q3,
+  lesson_fase2_q4,
+  lesson_fase2_q5,
+];

@@ -28,7 +28,6 @@ const Path_player: React.FC = () => {
   const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal");
   const [newAchievements, setNewAchievements] = useState<any[]>([]);
   const [showAchievementsPopup, setShowAchievementsPopup] = useState(false);
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentPhase, setCurrentPhase] = useState(1); // 1 ou 2
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 0-4 para as 5 questões
   const [showPhaseSummary, setShowPhaseSummary] = useState(false); // Nova state para controlar o resumo da fase
