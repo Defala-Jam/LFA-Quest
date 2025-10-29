@@ -1,10 +1,11 @@
 /* ====== LAYOUT GERAL ====== */
 .lesson-container {
   display: flex;
-  height: 100vh;
   background-color: #0f172a;
   color: #e2e8f0;
   font-family: "Inter", system-ui, sans-serif;
+  height: auto; /* Permite que o conteúdo defina a altura */
+  min-height: 100vh; /* Garante altura mínima de tela cheia */
 }
 
 /* ====== Botão de validar (AUTÔMATO) ====== */
@@ -78,6 +79,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  max-height: 100vh;
 }
 
 /* Container específico para o autômato */
@@ -404,6 +406,7 @@
 .lesson-left {
   flex: 1;
   padding: 3rem;
+  max-height: 100vh; /* Impede que ultrapasse a tela */
   overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }

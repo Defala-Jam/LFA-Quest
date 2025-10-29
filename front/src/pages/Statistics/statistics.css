@@ -1,24 +1,28 @@
-.statistics-container {
+/* ====== LAYOUT PRINCIPAL (IGUAL AO PERFIL) ====== */
+.statistics-layout {
   display: flex;
-  justify-content: center; /* Centraliza horizontal */
-  align-items: flex-start; /* Mantém o topo alinhado (use center se quiser centralizar vertical também) */
   min-height: 100vh;
-  background-color: #1a2332;
-  color: #ffffff;
+  background: #1a2332;
+  gap: 24px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Conteúdo central */
+/* ====== CONTEÚDO PRINCIPAL ====== */
 .statistics-main {
   flex: 1;
-  max-width: 1000px; /* largura máxima */
-  padding: 2rem;
-  margin: 0 auto; /* garante centralização */
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  padding: 1.5rem;
+  overflow-y: auto;
 }
 
-/* Header */
+.statistics-container {
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: var(--font-sans);
+  transition: background 0.3s ease;
+  color: #ffffff;
+}
+
+/* ====== HEADER ====== */
 .statistics-header {
   margin-bottom: 2rem;
 }
@@ -31,11 +35,11 @@
 }
 
 .statistics-header p {
-  color: #94a3b8; /* cinza claro */
+  color: #94a3b8;
   font-size: 1.1rem;
 }
 
-/* Journey Selection */
+/* ====== JOURNEY SELECTION ====== */
 .journey-section {
   margin-bottom: 2rem;
 }
@@ -54,7 +58,7 @@
 }
 
 .journey-card {
-  background: #222d41; /* cinza-azulado */
+  background: #222d41;
   border: 2px solid #475569;
   border-radius: 12px;
   padding: 1.5rem;
@@ -64,7 +68,7 @@
 }
 
 .journey-card:hover {
-  border-color: #1c986f; /* verde */
+  border-color: #1c986f;
   transform: translateY(-2px);
 }
 
@@ -101,7 +105,7 @@
 
 .progress-fill {
   height: 100%;
-  background: #3b82f6; /* azul */
+  background: #3b82f6;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -111,32 +115,43 @@
   font-size: 0.9rem;
 }
 
-/* Journey Overview */
-.journey-overview {
-  margin-bottom: 2rem;
-}
-
-.journey-overview h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #ffffff;
-}
-
-.overview-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+/* ====== OVERVIEW (CARDS DE ESTATÍSTICA) ====== */
+.overview-grid {
+  display: flex;
+  flex-direction: column; /* 🔹 Faz os cards ficarem um em cima do outro */
+  gap: 1.5rem; /* Espaçamento entre os cards */
+  width: 100%;
+  max-width: 900px; /* Centraliza e limita largura */
+  margin: 0 auto; /* Centraliza o grupo na tela */
 }
 
 .overview-card {
   background: #222d41;
   border: 1px solid #475569;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
+.overview-card:hover {
+  transform: translateY(-4px);
+  border-color: #1c986f;
+}
+
+.overview-card h3 {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.overview-card p {
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+/* Mantém consistência visual com as outras seções */
 .overview-value {
   font-size: 2rem;
   font-weight: bold;
@@ -149,7 +164,7 @@
   font-size: 0.9rem;
 }
 
-/* Tag Statistics */
+/* ====== TAG STATISTICS ====== */
 .tags-section h2 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -305,17 +320,17 @@
 }
 
 .tag-stats {
-  display: flex; /* troca grid por flex */
-  justify-content: space-between; /* distribui bem os itens */
-  flex-wrap: wrap; /* permite quebrar linha se precisar */
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
 .stat-item {
-  flex: 1; /* cada item ocupa espaço igual */
+  flex: 1;
   text-align: center;
-  min-width: 80px; /* garante que não esmague demais */
+  min-width: 80px;
 }
 
 .stat-value {
