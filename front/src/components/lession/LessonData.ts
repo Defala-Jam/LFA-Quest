@@ -8,6 +8,11 @@ import f2q2 from "./LessonDataImages/f2q2.jpeg";
 import f2q4 from "./LessonDataImages/f2q4.jpeg";
 
 
+// Fase 3
+import f3q3 from "./LessonDataImages/f3q3.jpeg";
+
+
+
 // =======================
 // 🔹 FASE 1
 // =======================
@@ -252,4 +257,433 @@ export const lessonsFase2 = [
   lesson_fase2_q3,
   lesson_fase2_q4,
   lesson_fase2_q5,
+];
+
+
+// =======================
+// 🔹 FASE 3
+// =======================
+
+// Questão 1 – POSCOMP 2011
+export const lesson_fase3_q1 = {
+  title: "POSCOMP 2011 — Gramática Livre de Contexto para Expressão Regular",
+
+  explanation: `Concatenação é quando um símbolo é lido em seguida do outro. Ex: "ab" lê-se "a" concatenado com "b".
+A estrela de Kleene representa a leitura de todas as concatenações daquele elemento. Ex: a* = a⁰, a¹, a², a³…`,
+
+  question: "Considere a gramática livre de contexto: S → aS | Sb | c. Qual expressão regular gera a mesma linguagem que a gramática definida acima?",
+
+  alternatives: [
+    "a*cb*",
+    "a+b+c",
+    "a+cb+",
+    "ca*b*",
+    "ca+b+"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["expressão regular", "análise de cadeia", "estrela de kleene"]
+};
+
+// Questão 2 – POSCOMP 2022
+export const lesson_fase3_q2 = {
+  title: "POSCOMP 2022 — Gramática Regular para Expressão Regular",
+
+  explanation: `L(r) significa "L aceita a expressão r". Uma expressão regular pode representar os tipos de palavras geradas por uma gramática específica.`,
+
+  question: "Dado a gramática regular (G), determine qual é a expressão regular (r), tal que L(r) = L(G): S → abS | S | a",
+
+  alternatives: [
+    "r = (ab)*a",
+    "r = aba*",
+    "r = a*(ba)",
+    "r = (a+b)*a*",
+    "r = (ab) + a"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["expressão regular", "análise de cadeia"]
+};
+
+// Questão 3 – IFB 2017
+export const lesson_fase3_q3 = {
+  title: "IFB 2017 — Expressões Regulares e Autômatos",
+
+  explanation: `Observe como cada expressão regular descreve a necessidade de pelo menos um "1" para alcançar o estado final. Compare o comportamento do autômato: ele aceita qualquer sequência de 0's antes, mas precisa encontrar um 1 obrigatório para chegar ao estado final.`,
+
+  image: f3q3,
+
+  question: `Leia as afirmativas sobre expressões regulares associadas ao autômato da figura:
+
+I) A expressão regular 0*1(1+00*1)* representa o autômato da figura.
+II) A expressão regular 0*1*1+11*0*1 representa o autômato da figura.
+III) A expressão regular (0+1)*1 representa o autômato da figura.
+
+Assinale somente a alternativa que apresenta todas as afirmativas CORRETAS.`,
+
+  alternatives: [
+    "Somente I e II",
+    "Somente I e III",
+    "Somente II",
+    "Somente II e III",
+    "Somente I"
+  ],
+
+  correctAnswer: 1,
+
+  tags: ["expressão regular", "análise de cadeia"]
+};
+
+// Questão 4 – POSCOMP 2003
+export const lesson_fase3_q4 = {
+  title: "POSCOMP 2003 — Gramática para Expressão Regular",
+
+  explanation: `O símbolo (|) indica que o símbolo inicial pode derivar um dos resultados - "ou" um "ou" outro. Analise como os resultados da derivação formam o padrão de palavras geradas.`,
+
+  question: `Uma gramática G é definida por G=({x,y,z},{S,W,X,Y,Z},P,S) onde P são:
+S → WZ
+W → X|Y
+X → x|xX
+Y → y|yY
+Z → z|zZ
+
+Qual das expressões regulares abaixo corresponde a esta gramática?`,
+
+  alternatives: [
+    "(xx*|yy*)zz*",
+    "xx*|yy*|zz*",
+    "xx*(yy*|zz*)",
+    "(xx|yy)*zz*",
+    "xx*yy*zz*"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["expressão regular", "análise de cadeia", "estrela de kleene"]
+};
+
+// Questão 5 – POSCOMP 2009 (Adaptado)
+export const lesson_fase3_q5 = {
+  title: "POSCOMP 2009 — Linguagem com Número Par de a's",
+
+  explanation: `A linguagem L = {ω | ω ∈ Σ* e o número de a's em ω é par} inclui todas as cadeias onde a quantidade de 'a's é par, incluindo zero.`,
+
+  question: `Seja o alfabeto Σ = {a, b} e a linguagem regular L = {ω | ω ∈ Σ* e o nº de a's em ω é par}. Qual das expressões regulares abaixo gera essa linguagem?`,
+
+  alternatives: [
+    "(a b* a b*)*",
+    "((a a)* | b*)*",
+    "(b* | (a a)* | b*)*",
+    "(b*ab*ab*)*|b*",
+    "(a a | b)"
+  ],
+
+  correctAnswer: 3,
+
+  tags: ["expressão regular", "análise de cadeia", "estrela de kleene"]
+};
+
+export const lessonsFase3 = [
+  lesson_fase3_q1,
+  lesson_fase3_q2,
+  lesson_fase3_q3,
+  lesson_fase3_q4,
+  lesson_fase3_q5,
+];
+
+// =======================
+// 🔹 FASE 4
+// =======================
+
+// Questão 1 – ENADE 2014
+export const lesson_fase4_q1 = {
+  title: "ENADE 2014 — Análise de Expressões Regulares",
+
+  explanation: `Pense na paridade dos a's - a linguagem exige que haja pares de a (0, 2, 4, ...). Construa a expressão agrupando dois a por vez, permitindo qualquer número de b antes, entre e depois desses pares.`,
+
+  question: `Considere as expressões regulares:
+R1 = a*ba*ba*ba*
+R2 = a*(a | b)a(a | b)*
+R3 = a*ab*a(a | b)
+R4 = (a | b)*
+
+Em relação às linguagens definidas, conclui-se que a cadeia abbb está contida apenas nas linguagens definidas por:`,
+
+  alternatives: [
+    "R1 e R4",
+    "R2 e R3",
+    "R2 e R4",
+    "R1 e R3",
+    "R2, R3 e R4"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["expressão regular", "análise de cadeia", "fecho", "estrela de kleene"]
+};
+
+// Questão 2 – POSCOMP 2014
+export const lesson_fase4_q2 = {
+  title: "POSCOMP 2014 — Descrição de Linguagem por Expressão Regular",
+
+  explanation: `As derivações, mesmo que possam ser geradas infinitamente, devem respeitar a ordem em que estão sendo colocadas. Analise o padrão estabelecido pela expressão regular.`,
+
+  question: `Considere a expressão regular: (c*a[abc]*b[abc]*) | c*. Assinale a alternativa que descreve, corretamente, todas as cadeias geradas por essa expressão regular.`,
+
+  alternatives: [
+    "Cadeias sobre o alfabeto {a,b,c} onde o primeiro a precede o primeiro b",
+    "Cadeias sobre o alfabeto {a,b,c} com um número par de a's",
+    "Cadeias sobre o alfabeto {a,b,c} contendo a substring baa",
+    "Cadeias sobre o alfabeto {a,b,c} contendo um número ímpar de c's",
+    "Cadeias sobre o alfabeto {a,b,c} terminadas por c"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["expressão regular", "análise de cadeia"]
+};
+
+// Questão 3 – POSCOMP 2015
+export const lesson_fase4_q3 = {
+  title: "POSCOMP 2015 — União de Linguagens Regulares",
+
+  explanation: `Observe que R1 gera cadeias que começam com "a" e R2 com "b". Assim, suas linguagens são diferentes, mas juntas cobrem todas as cadeias não vazias do alfabeto {a, b}.`,
+
+  question: `Considere as expressões regulares sobre o alfabeto {a, b}:
+R1 = a(a ∪ b)*
+R2 = b(a ∪ b)*
+
+Se L(R) é a linguagem associada a uma expressão regular R, é correto afirmar que:`,
+
+  alternatives: [
+    "L(R1) = L(R2)",
+    "L(R2) = {w | w termina com b}",
+    "existe um autômato finito determinístico cuja linguagem é igual a L(R1) ∪ L(R2)",
+    "se R3 é uma expressão regular tal que L(R3) = L(R1) ∩ L(R2), então L(R3) é uma linguagem infinita",
+    "um autômato finito não determinístico que reconheça L(R1) ∪ L(R2) tem, pelo menos, quatro estados"
+  ],
+
+  correctAnswer: 2,
+
+  tags: ["expressão regular", "análise de cadeia", "fechos", "união", "interseção", "estrela de kleene"]
+};
+
+// Questão 4 – POSCOMP 2003
+export const lesson_fase4_q4 = {
+  title: "POSCOMP 2003 — Propriedades de Autômatos e Expressões Regulares",
+
+  explanation: `Antes de decidir, relembre o que cada conceito realmente significa. AFD e AFND reconhecem a mesma classe de linguagens (as regulares), e toda expressão regular pode ser convertida em um autômato finito.`,
+
+  question: `Considere as afirmações sobre autômatos finitos e expressões regulares:
+
+I. A classe de linguagens aceita por um AFD não é a mesma que um AFND.
+II. Para algumas expressões regulares não é possível construir um AFD.
+III. A expressão regular (b+ba)+ aceita os strings de b's e a's começando com b e não tendo dois a's consecutivos.
+
+Selecione a afirmativa correta:`,
+
+  alternatives: [
+    "As afirmativas I e II são verdadeiras",
+    "As afirmativas I e III são falsas",
+    "Apenas a afirmativa III é verdadeira",
+    "As afirmativas II e III são falsas",
+    "As afirmativas I e III são verdadeiras"
+  ],
+
+  correctAnswer: 2,
+
+  tags: ["AFDs", "AFNDs", "expressão regular"]
+};
+
+// Questão 5 – POSCOMP 2005
+export const lesson_fase4_q5 = {
+  title: "POSCOMP 2005 — Linguagem com Restrição de Ocorrência",
+
+  explanation: `Σ representa o alfabeto, assim Σ* representa todas as combinações possíveis para aquele alfabeto. Analise uma expressão que garanta a ordem de a's seguido de b's de modo que independente do tamanho siga este padrão.`,
+
+  question: `Seja Σ = {a, b}. Uma expressão regular denotando a linguagem L = {w ∈ Σ* tal que toda ocorrência de "a" em w é imediatamente seguida de "b"} é:`,
+
+  alternatives: [
+    "(a*b)*",
+    "(b+ab)*",
+    "a*b",
+    "b+(ab)*",
+    "(ab)*"
+  ],
+
+  correctAnswer: 1,
+
+  tags: ["expressão regular", "análise de cadeia", "padrão de ocorrência"]
+};
+
+export const lessonsFase4 = [
+  lesson_fase4_q1,
+  lesson_fase4_q2,
+  lesson_fase4_q3,
+  lesson_fase4_q4,
+  lesson_fase4_q5,
+];
+
+
+// =======================
+// 🔹 FASE 5 - Lema do Bombeamento
+// =======================
+
+// Questão 1 – Sipser Exemplo 1.73
+export const lesson_fase5_q1 = {
+  title: "Sipser Exemplo 1.73 — Lema do Bombeamento para {0ⁿ1ⁿ}",
+
+  explanation: `O Lema do Bombeamento é usado para provar que linguagens não são regulares. Para uma linguagem ser regular, deve existir um número de bombeamento p tal que qualquer string s com |s| ≥ p possa ser dividida em xyz satisfazendo as condições do lema.`,
+
+  question: `Complete a prova usando o Lema do Bombeamento para mostrar que A = {0ⁿ1ⁿ | n ≥ 0} não é regular:
+
+Prova:
+Suponha, para fins de contradição, que A é _______ (1).
+Pelo lema do bombeamento, existe um número p chamado _______ (2), tal que toda string s ∈ A com |s| ≥ p pode ser decomposta como s = xyz, com |xy| ≤ p, |y| > 0 e para todo i ≥ 0, xyⁱz ∈ A.
+
+Escolhemos s = _______ (3). Essa string pertence a A e possui comprimento maior que p.
+
+Analisemos as possíveis formas de y:
+
+1. Caso 1: y contém apenas o símbolo _______ (4).
+   Ao bombear (i=2), obtemos xyyz, que terá mais 0s que 1s.
+
+2. Caso 2: y contém apenas o símbolo _______ (5).
+   O bombeamento produz uma string com mais 1s que 0s.
+
+3. Caso 3: y contém tanto 0s quanto 1s.
+   Ao bombear, a string xyyz terá os 1s fora de ordem, quebrando o formato _______ (6).
+
+Em todos os casos, ocorre contradição. Logo, A não é regular.`,
+
+  alternatives: [
+    "(1) regular; (2) comprimento de bombeamento; (3) 0ᵖ1ᵖ; (4) 0; (5) 1; (6) todos os 0s seguidos de todos os 1s",
+    "(1) livre de contexto; (2) limite superior; (3) 0ᵖ1ᵖ; (4) 0; (5) 1; (6) balanceado",
+    "(1) regular; (2) comprimento mínimo; (3) 1ᵖ0ᵖ; (4) 1; (5) 0; (6) com igual número de 0s e 1s",
+    "(1) recursiva; (2) comprimento de bombeamento; (3) 0ᵖ1ᵖ; (4) 0; (5) 1; (6) com prefixo 0 e sufixo 1"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "linguagem não regular", "0n1n"]
+};
+
+// Questão 2 – Sipser Exemplo 1.75
+export const lesson_fase5_q2 = {
+  title: "Sipser Exemplo 1.75 — Lema do Bombeamento para {ww}",
+
+  explanation: `A linguagem B = {ww | w ∈ {0,1}*} contém strings que são duplicatas de alguma string w. O Lema do Bombeamento pode mostrar que essa linguagem não é regular através de uma escolha cuidadosa da string s.`,
+
+  question: `Complete a prova usando o Lema do Bombeamento para mostrar que B = {ww | w ∈ {0,1}*} não é regular:
+
+Prova:
+Suponha que B é regular. Pelo lema do bombeamento, existe p tal que toda string s ∈ B com |s| ≥ p pode ser decomposta como s = xyz, com |xy| ≤ p, |y| > 0 e para todo i ≥ 0, xyⁱz ∈ B.
+
+Escolhemos s = _______ (1). Essa string pertence a B e tem comprimento maior que p.
+
+A _______ (2) (que diz que xyⁱz ∈ B para todo i ≥ 0) será crucial, pois sem ela poderíamos bombear s escolhendo x e z vazios.
+
+No entanto, com essa condição, a prova segue porque y deve conter apenas _______ (3).
+
+Se bombearmos (i=2), obtemos xyyz, que não pertence a B, pois a estrutura _______ (4) de ww é quebrada.
+
+Escolhemos 0ᵖ10ᵖ1 para capturar a "essência" da não regularidade de B. Se tivéssemos escolhido 0ᵖ0ᵖ, ela poderia ser _______ (5) sem violar a forma B.
+
+Portanto, obtemos uma contradição, e concluímos que B não é _______ (6).`,
+
+  alternatives: [
+    "(1) 0ᵖ10ᵖ1; (2) condição 3; (3) 0s; (4) duplicada; (5) bombeada; (6) regular",
+    "(1) 0ᵖ1ᵖ; (2) condição 2; (3) 1s; (4) balanceada; (5) dividida; (6) livre de contexto",
+    "(1) 1ᵖ01ᵖ0; (2) condição 1; (3) 0s e 1s; (4) simétrica; (5) comprimida; (6) recursiva",
+    "(1) 0ᵖ0ᵖ; (2) condição 3; (3) 0s; (4) duplicada; (5) bombeada; (6) regular"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "linguagem não regular", "ww"]
+};
+
+// Questão 3 – Sipser Exemplo 1.77
+export const lesson_fase5_q3 = {
+  title: "Sipser Exemplo 1.77 — Lema do Bombeamento para {0ⁱ1ʲ | i > j}",
+
+  explanation: `A linguagem C = {0ⁱ1ʲ | i > j} contém strings onde o número de 0s é estritamente maior que o número de 1s. O bombeamento para baixo (i=0) é frequentemente útil para linguagens que envolvem relações de quantidade entre símbolos.`,
+
+  question: `Complete a prova usando o Lema do Bombeamento para mostrar que C = {0ⁱ1ʲ | i > j} não é regular:
+
+Prova:
+Suponha que C é regular. Pelo lema do bombeamento, existe p tal que toda string s ∈ C com |s| ≥ p pode ser decomposta como s = xyz, com |xy| ≤ p, |y| > 0 e para todo i ≥ 0, xyⁱz ∈ C.
+
+Escolhemos _______ (1). Essa string está em C porque possui exatamente um 0 a mais que o número de 1s.
+
+Pelo lema, s pode ser decomposta como xyz. Como |xy| ≤ p, a parte y contém apenas o símbolo _______ (2).
+
+Primeiro, tentemos bombear para cima (i=2): o número de 0s aumenta, mas xy²z ainda está em C. Nenhuma contradição ocorre.
+
+Agora, consideremos o caso _______ (3) bombeando para baixo. A string resultante é xy⁰z = xz, que tem menos 0s que s.
+
+Como s tinha apenas um 0 a mais que 1s, a string xz passa a ter _______ (4). Portanto, xz ∉ C, o que contradiz a _______ (5).
+
+Assim, chegamos a uma contradição. Logo, C não é _______ (6).`,
+
+  alternatives: [
+    "(1) 0ᵖ⁺¹1ᵖ; (2) 0; (3) i = 0; (4) o mesmo número de 0s e 1s; (5) condição 3; (6) regular",
+    "(1) 0ᵖ1ᵖ; (2) 1; (3) i = 1; (4) mais 1s que 0s; (5) condição 2; (6) livre de contexto",
+    "(1) 0ᵖ1ᵖ⁻¹; (2) 0; (3) i = 2; (4) menos 0s que 1s; (5) condição 1; (6) recursiva",
+    "(1) 1ᵖ0ᵖ⁺¹; (2) 1; (3) i = 0; (4) o mesmo número de 0s e 1s; (5) condição 3; (6) regular"
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "linguagem não regular", "bombeamento para baixo", "0i1j"]
+};
+
+// Questão 4 – Lema do Bombeamento (Conceitos Gerais)
+export const lesson_fase5_q4 = {
+  title: "Lema do Bombeamento — Conceitos e Aplicações",
+
+  explanation: `O Lema do Bombeamento estabelece condições necessárias para linguagens regulares. Se uma linguagem não satisfaz essas condições, ela não pode ser regular. O bombeamento pode ser para cima (i>1) ou para baixo (i=0).`,
+
+  question: `Sobre o Lema do Bombeamento para linguagens regulares, qual das seguintes afirmações é CORRETA?`,
+
+  alternatives: [
+    "O lema do bombeamento pode ser usado para provar que uma linguagem não é regular, mas não pode provar que uma linguagem é regular.",
+    "Se uma linguagem satisfaz o lema do bombeamento, então ela é definitivamente regular.",
+    "O comprimento de bombeamento p é sempre igual ao número de estados do menor autômato que reconhece a linguagem.",
+    "Para provar que uma linguagem não é regular, basta encontrar uma string que não possa ser bombeada para um único valor de i."
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "propriedades", "linguagens regulares"]
+};
+
+// Questão 5 – Estratégias de Bombeamento
+export const lesson_fase5_q5 = {
+  title: "Estratégias de Aplicação do Lema do Bombeamento",
+
+  explanation: `Diferentes tipos de linguagens não regulares requerem diferentes estratégias de bombeamento. Algumas são mais facilmente contraditas bombeando para cima, outras bombeando para baixo, dependendo da propriedade que define a linguagem.`,
+
+  question: `Em relação às estratégias de aplicação do Lema do Bombeamento, qual afirmação é VERDADEIRA?`,
+
+  alternatives: [
+    "Para linguagens que envolvem relações de quantidade entre símbolos, o bombeamento para baixo (i=0) é frequentemente mais eficaz.",
+    "O bombeamento para cima (i>1) sempre leva a contradição para qualquer linguagem não regular.",
+    "A escolha da string s é irrelevante, desde que tenha comprimento maior ou igual a p.",
+    "Sempre devemos considerar apenas o caso onde y contém um único tipo de símbolo."
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "estratégias", "bombeamento para baixo"]
+};
+
+export const lessonsFase5 = [
+  lesson_fase5_q1,
+  lesson_fase5_q2,
+  lesson_fase5_q3,
+  lesson_fase5_q4,
+  lesson_fase5_q5,
 ];

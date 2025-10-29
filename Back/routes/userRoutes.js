@@ -9,8 +9,13 @@ import {
   getUserAchievements,
   checkAchievements,
 } from "../controllers/userController.js";
+import { getUserAnalytics } from "../controllers/userAnalyticsController.js";
+
 
 const router = express.Router();
+
+// Estatísticas de aprendizado (deve vir antes da rota genérica "/:id")
+router.get("/:id/analytics", getUserAnalytics);
 
 // Rotas existentes...
 router.get("/:id", getUserProfile);
@@ -21,7 +26,9 @@ router.get("/leaderboard/all", getLeaderboard);
 // 🏆 Novas rotas de conquistas
 router.get("/:id/achievements", getUserAchievements);
 router.get("/:id/checkAchievements", checkAchievements);
+
 //resposta diagnostica
 router.post("/diagnostic", saveDiagnosticAnswers);
+
 
 export default router;

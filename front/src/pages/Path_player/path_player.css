@@ -69,15 +69,24 @@
 
 .path-nodes {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+  flex-direction: column; /* coluna vertical */
+  align-items: center;    /* centraliza horizontalmente os nós */
+  gap: 20px;              /* espaço entre cada nó + linha */
+}
+
+.node-wrapper {
+  display: flex;
+  flex-direction: column; /* cada nó + linha em coluna */
+  align-items: center;    /* centraliza nó e linha */
 }
 
 .path-node {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   z-index: 2;
 }
+
 
 .node-circle {
   width: 80px;

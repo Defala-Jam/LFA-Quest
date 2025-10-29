@@ -1,108 +1,117 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-import Sidebar from "../../components/sidebar/Sidebar.tsx";
-import Task from "../../components/Task/Taks.tsx";
-import Lesson from "../../components/lession/LessonTemplate.tsx";
+import React, { useState, useEffect } from "react"
+import { jwtDecode } from "jwt-decode"
+import { useLocation } from "react-router-dom"
+import Sidebar from "../../components/sidebar/Sidebar.tsx"
+import Task from "../../components/Task/Taks.tsx"
+import Lesson from "../../components/lession/LessonTemplate.tsx"
 import {
   lessonsFase1,
   lessonsFase2,
-} from "../../components/lession/LessonData.ts";
+  lessonsFase3,
+  lessonsFase4,
+  lessonsFase5,
+} from "../../components/lession/LessonData.ts"
 
-import "./path_player.css"  
+const lessons = [lessonsFase1, lessonsFase2, lessonsFase3, lessonsFase4, lessonsFase5]
+
+import "./path_player.css"
 
 interface DecodedToken {
-  id: number;
-  email: string;
-  exp: number;
+  id: number
+  email: string
+  exp: number
 }
 
-
-
 const Path_player: React.FC = () => {
-  const [activeNavItem, setActiveNavItem] = useState("journey");
-  const [isTaskOpen, setIsTaskOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
-  const [isLessonActive, setIsLessonActive] = useState(false);
-  const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal");
-  const [newAchievements, setNewAchievements] = useState<any[]>([]);
-  const [showAchievementsPopup, setShowAchievementsPopup] = useState(false);
-  const [currentPhase, setCurrentPhase] = useState(1); // 1 ou 2
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 0-4 para as 5 questões
-  const [showPhaseSummary, setShowPhaseSummary] = useState(false); // Nova state para controlar o resumo da fase
-  const [phaseAnswers, setPhaseAnswers] = useState<boolean[]>([]); // Armazenar respostas da fase
+  const [activeNavItem, setActiveNavItem] = useState("journey")
+  const [isTaskOpen, setIsTaskOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [isLessonActive, setIsLessonActive] = useState(false)
+  const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal")
+  const [newAchievements, setNewAchievements] = useState<any[]>([])
+  const [showAchievementsPopup, setShowAchievementsPopup] = useState(false)
+  const [currentPhase, setCurrentPhase] = useState(1) // 1 ou 2
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0) // 0-4 para as 5 questões
+  const [showPhaseSummary, setShowPhaseSummary] = useState(false) // Nova state para controlar o resumo da fase
+  const [phaseAnswers, setPhaseAnswers] = useState<boolean[]>([]) // Armazenar respostas da fase
 
-  // 🔹 Dados do usuário vindos do backend
-  const [userData, setUserData] = useState<any>(null);
+  const location = useLocation()
+  const [reviewMode, setReviewMode] = useState(false)
+  const [reviewQuestions, setReviewQuestions] = useState<any[]>([])
+  const [reviewTags, setReviewTags] = useState<string[]>([])
 
-  // -------------------------
-  // 🔐 LOGIN E REGISTRO
-  // -------------------------
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [registerName, setRegisterName] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerError, setRegisterError] = useState("");
+  const [userData, setUserData] = useState<any>(null)
 
+  const [loginEmail, setLoginEmail] = useState("")
+  const [loginPassword, setLoginPassword] = useState("")
+  const [loginError, setLoginError] = useState("")
+  const [showLogin, setShowLogin] = useState(false)
 
+  const [registerName, setRegisterName] = useState("")
+  const [registerEmail, setRegisterEmail] = useState("")
+  const [registerPassword, setRegisterPassword] = useState("")
+  const [registerError, setRegisterError] = useState("")
+  const [showRegister, setShowRegister] = useState(false)
 
-
-
-  // ================================
-  // 🧠 Buscar dados do backend
-  // ================================
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (location.state?.reviewMode) {
+      console.log("[v0] Review mode activated with", location.state.reviewQuestions.length, "questions")
+      setReviewMode(true)
+      setReviewQuestions(location.state.reviewQuestions)
+      setReviewTags(location.state.reviewTags || [])
+      setCurrentQuestionIndex(0)
+      setPhaseAnswers([])
+      setIsLessonActive(true)
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) return
 
     try {
-      const decoded: DecodedToken = jwtDecode(token);
-      const userId = decoded.id;
+      const decoded: DecodedToken = jwtDecode(token)
+      const userId = decoded.id
 
       fetch(`http://localhost:5000/api/users/${userId}`)
         .then((res) => {
-          if (!res.ok) throw new Error("Erro ao buscar usuário");
-          return res.json();
+          if (!res.ok) throw new Error("Erro ao buscar usuário")
+          return res.json()
         })
         .then((data) => {
-          setUserData(data);
-          console.log("✅ Dados do usuário carregados:", data);
+          setUserData(data)
+          console.log("✅ Dados do usuário carregados:", data)
         })
-        .catch((err) => console.error("Erro ao carregar usuário:", err));
+        .catch((err) => console.error("Erro ao carregar usuário:", err))
     } catch (error) {
-      console.error("Token inválido:", error);
+      console.error("Token inválido:", error)
     }
-  }, []);
+  }, [])
 
-  // Função de Login
   const handleLogin = async () => {
-    setLoginError("");
+    setLoginError("")
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Erro no login");
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      alert("✅ Login realizado com sucesso!");
-      setShowLogin(false);
-      window.location.reload();
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Erro no login")
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+      alert("✅ Login realizado com sucesso!")
+      setShowLogin(false)
+      window.location.reload()
     } catch (err: any) {
-      setLoginError(err.message);
+      setLoginError(err.message)
     }
-  };
+  }
 
-  // Função de Registro
   const handleRegister = async () => {
-    setRegisterError("");
+    setRegisterError("")
     try {
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
@@ -112,33 +121,28 @@ const Path_player: React.FC = () => {
           email: registerEmail,
           password: registerPassword,
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Erro no cadastro");
-      alert("✅ Cadastro realizado com sucesso!");
-      setShowRegister(false);
-      setShowLogin(true);
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Erro no cadastro")
+      alert("✅ Cadastro realizado com sucesso!")
+      setShowRegister(false)
+      setShowLogin(true)
     } catch (err: any) {
-      setRegisterError(err.message);
+      setRegisterError(err.message)
     }
-  };
+  }
 
-  // -------------------------
-  // 🔹 FUNÇÕES PRINCIPAIS
-  // -------------------------
   const navigator = (item: string) => {
-    setActiveNavItem(item);
-    console.log(`[v0] Navigating to: ${item}`);
-  };
+    setActiveNavItem(item)
+    console.log(`[v0] Navigating to: ${item}`)
+  }
 
-  // Dados das fases (nós principais)
   const phaseData = [
     {
       phase: 1,
-      title: "Fase 1: Fundamentos dos Autômatos",
+      title: "Fundamentos dos Autômatos",
       description: "Aprenda os conceitos básicos de autômatos finitos e gramáticas regulares.",
       icon: "🧠",
-      difficulty: "Iniciante",
       xp: 75,
       progress: 60,
       questionsCount: 5,
@@ -147,15 +151,14 @@ const Path_player: React.FC = () => {
         "Gramáticas Regulares e Derivações",
         "Conversão de AFN para AFD",
         "Propriedades dos Autômatos",
-        "Expressões Aritméticas e Gramáticas"
-      ]
+        "Expressões Aritméticas e Gramáticas",
+      ],
     },
     {
       phase: 2,
-      title: "Fase 2: Aplicações Avançadas",
+      title: "Aplicações Avançadas",
       description: "Aprofunde seus conhecimentos com questões mais complexas sobre autômatos.",
       icon: "⚡",
-      difficulty: "Intermediário",
       xp: 75,
       progress: 30,
       questionsCount: 5,
@@ -164,89 +167,138 @@ const Path_player: React.FC = () => {
         "Autômatos JFLAP e Transições",
         "Autômatos Determinísticos vs Não Determinísticos",
         "Linguagens Aceitas por AFD",
-        "Tipos de Gramática e Hierarquia de Chomsky"
-      ]
-    }
-  ];
+        "Tipos de Gramática e Hierarquia de Chomsky",
+      ],
+    },
+    {
+      phase: 3,
+      title: "Expressões Regulares",
+      description: "Estude expressões regulares e sua relação com autômatos.",
+      icon: "🔍",
+      xp: 100,
+      progress: 0,
+      questionsCount: 5,
+      learningPoints: [
+        "Expressões Regulares básicas",
+        "Fecho de Kleene",
+        "União e Interseção de Linguagens",
+        "Conversão para Autômatos",
+        "Exercícios práticos",
+      ],
+    },
+    {
+      phase: 4,
+      title: "Avançado em Automatos",
+      description: "Consolide seu conhecimento em autômatos e expressões regulares.",
+      icon: "🚀",
+      xp: 100,
+      progress: 0,
+      questionsCount: 5,
+      learningPoints: [
+        "Propriedades avançadas de autômatos",
+        "Expressões regulares complexas",
+        "Validação de autômatos",
+        "Simulações de autômatos",
+        "Desafios de integração",
+      ],
+    },
+  ]
 
   const handleNodeClick = (phase: number) => {
-    const phaseInfo = phaseData.find(p => p.phase === phase);
-    setSelectedTask(phaseInfo);
-    setCurrentPhase(phase);
-    setCurrentQuestionIndex(0); // Começar na primeira questão
-    setPhaseAnswers([]); // Resetar respostas
-    setShowPhaseSummary(false); // Resetar resumo
-    setIsTaskOpen(true);
-  };
+    const phaseInfo = phaseData.find((p) => p.phase === phase)
+    setSelectedTask(phaseInfo)
+    setCurrentPhase(phase)
+    setCurrentQuestionIndex(0) // Começar na primeira questão
+    setPhaseAnswers([]) // Resetar respostas
+    setShowPhaseSummary(false) // Resetar resumo
+    setIsTaskOpen(true)
+  }
 
   const handleCloseTask = () => {
-    setIsTaskOpen(false);
-    setSelectedTask(null);
-  };
+    setIsTaskOpen(false)
+    setSelectedTask(null)
+  }
 
   const handleStartLesson = () => {
-    console.log(`[v0] Starting lesson - Phase ${currentPhase}, Question ${currentQuestionIndex}`);
-    setIsLessonActive(true);
-    handleCloseTask();
-  };
+    console.log(`[v0] Starting lesson - Phase ${currentPhase}, Question ${currentQuestionIndex}`)
+    setIsLessonActive(true)
+    handleCloseTask()
+  }
 
   const handleStartAutomatonLesson = () => {
-    console.log("[v0] Starting automaton lesson...");
-    setCurrentLessonType("automaton");
-    setIsLessonActive(true);
-    handleCloseTask();
-  };
+    console.log("[v0] Starting automaton lesson...")
+    setCurrentLessonType("automaton")
+    setIsLessonActive(true)
+    handleCloseTask()
+  }
 
   const handleExitLesson = () => {
-    setIsLessonActive(false);
-    setCurrentLessonType("normal");
-  };
+    setIsLessonActive(false)
+    setCurrentLessonType("normal")
+    if (reviewMode) {
+      setReviewMode(false)
+      setReviewQuestions([])
+      setReviewTags([])
+    }
+  }
 
   const handleLessonComplete = async (isCorrect: boolean) => {
-    // Salvar a resposta atual
-    const updatedAnswers = [...phaseAnswers, isCorrect];
-    setPhaseAnswers(updatedAnswers);
+    const updatedAnswers = [...phaseAnswers, isCorrect]
+    setPhaseAnswers(updatedAnswers)
 
-    const currentPhaseQuestions = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
-    const isLastQuestion = currentQuestionIndex >= currentPhaseQuestions.length - 1;
+    if (reviewMode) {
+      const isLastQuestion = currentQuestionIndex >= reviewQuestions.length - 1
+
+      if (isLastQuestion) {
+        setIsLessonActive(false)
+        setShowPhaseSummary(true)
+      } else {
+        setCurrentQuestionIndex((prev) => prev + 1)
+      }
+      return
+    }
+
+    const lessons = [lessonsFase1, lessonsFase2, lessonsFase3, lessonsFase4, lessonsFase5]
+    const currentPhaseQuestions = lessons[currentPhase - 1]
+    const isLastQuestion = currentQuestionIndex >= currentPhaseQuestions.length - 1
 
     if (isLastQuestion) {
-      // Última questão - mostrar resumo da fase
-      setIsLessonActive(false);
+      setIsLessonActive(false)
 
-      // Verificar conquistas apenas quando a fase for completada
-      if (!userData) return;
+      if (!userData) return
 
       try {
         console.log("enviando dados")
-        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
-        const data = await res.json();
+        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`)
+        const data = await res.json()
 
         if (data.newAchievements && data.newAchievements.length > 0) {
-          setNewAchievements(data.newAchievements);
-          setShowAchievementsPopup(true);
-          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
+          setNewAchievements(data.newAchievements)
+          setShowAchievementsPopup(true)
+          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements)
         } else {
-          console.log("Nenhuma nova conquista.");
+          console.log("Nenhuma nova conquista.")
         }
       } catch (err) {
-        console.error("Erro ao verificar conquistas:", err);
+        console.error("Erro ao verificar conquistas:", err)
       }
     } else {
       console.log("só passando para a próxima")
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1)
     }
-  };
+  }
 
   const handlePhaseSummaryContinue = () => {
-    setShowPhaseSummary(false);
-    setCurrentQuestionIndex(0);
-    setPhaseAnswers([]);
-  };
+    setShowPhaseSummary(false)
+    setCurrentQuestionIndex(0)
+    setPhaseAnswers([])
+    if (reviewMode) {
+      setReviewMode(false)
+      setReviewQuestions([])
+      setReviewTags([])
+    }
+  }
 
-
-
-  // Obter lição atual baseada na fase e índice da questão
   const getCurrentLesson = () => {
     if (currentLessonType === "automaton") {
       return {
@@ -264,72 +316,85 @@ const Path_player: React.FC = () => {
             { de: 5, para: 5, caractere: "a" },
             { de: 6, para: 7, caractere: "a" },
             { de: 7, para: 6, caractere: "b" },
-            { de: 7, para: 7, caractere: "a" }
+            { de: 7, para: 7, caractere: "a" },
           ],
         },
-      };
+      }
     }
 
-    // Lições normais baseadas na fase e questão atual
-    const lessons = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
-    const currentLesson = lessons[currentQuestionIndex];
-    
-    // Adicionar indicador de progresso no título
+    if (reviewMode && reviewQuestions.length > 0) {
+      const currentLesson = reviewQuestions[currentQuestionIndex]
+      if (currentLesson) {
+        return {
+          ...currentLesson,
+          title: `${currentLesson.title} (Questão ${currentQuestionIndex + 1} de ${reviewQuestions.length}) - Modo Revisão`,
+        }
+      }
+    }
+
+    const currentPhaseLessons = lessons[currentPhase - 1]
+    const currentLesson = currentPhaseLessons[currentQuestionIndex]
+
     if (currentLesson) {
       return {
         ...currentLesson,
-        title: `${currentLesson.title} (Questão ${currentQuestionIndex + 1} de ${lessons.length})`
-      };
+        title: `${currentLesson.title} (Questão ${currentQuestionIndex + 1} de ${currentPhaseLessons.length})`,
+      }
     }
-    
-    return lessonsFase1[0]; // Fallback
-  };
 
-  // -------------------------
-  // 🔹 TELA DE RESUMO DA FASE
-  // -------------------------
+    return currentPhaseLessons[0]
+  }
+
   if (showPhaseSummary) {
-    const totalQuestions = currentPhase === 1 ? lessonsFase1.length : lessonsFase2.length;
-    const correctAnswers = phaseAnswers.filter(answer => answer).length;
-    const phaseTitle = currentPhase === 1 ? "Fundamentos dos Autômatos" : "Aplicações Avançadas";
+    const totalQuestions = reviewMode
+      ? reviewQuestions.length
+      : currentPhase === 1
+        ? lessonsFase1.length
+        : lessonsFase2.length
+    const correctAnswers = phaseAnswers.filter((answer) => answer).length
+    const phaseTitle = reviewMode
+      ? `Revisão: ${reviewTags.join(", ")}`
+      : currentPhase === 1
+        ? "Fundamentos dos Autômatos"
+        : "Aplicações Avançadas"
 
     return (
       <div className="summary-container">
         <div className="summary-card">
-          <h1>🎉 Fase Concluída!</h1>
-          <h2>Fase {currentPhase}: {phaseTitle}</h2>
+          <h1>🎉 {reviewMode ? "Revisão Concluída!" : "Fase Concluída!"}</h1>
+          <h2>
+            {reviewMode ? "Modo Revisão" : `Fase ${currentPhase}`}: {phaseTitle}
+          </h2>
 
           <p>
-            Você respondeu <b>{totalQuestions}</b> pergunta{totalQuestions > 1 ? "s" : ""} nesta fase.
+            Você respondeu <b>{totalQuestions}</b> pergunta{totalQuestions > 1 ? "s" : ""}{" "}
+            {reviewMode ? "nesta revisão" : "nesta fase"}.
           </p>
           <p>
             ✅ Acertos: <b>{correctAnswers}</b> &nbsp;&nbsp; ❌ Erros: <b>{totalQuestions - correctAnswers}</b>
           </p>
 
           <p className="performance-text">
-            {correctAnswers === totalQuestions ? "🎯 Performance Perfeita!" :
-             correctAnswers >= totalQuestions * 0.7 ? "🌟 Excelente desempenho!" :
-             correctAnswers >= totalQuestions * 0.5 ? "👍 Bom trabalho!" :
-             "💪 Continue praticando!"}
+            {correctAnswers === totalQuestions
+              ? "🎯 Performance Perfeita!"
+              : correctAnswers >= totalQuestions * 0.7
+                ? "🌟 Excelente desempenho!"
+                : correctAnswers >= totalQuestions * 0.5
+                  ? "👍 Bom trabalho!"
+                  : "💪 Continue praticando!"}
           </p>
 
-          <button
-            className="continue-button"
-            onClick={handlePhaseSummaryContinue}
-          >
-            Continuar Jornada →
+          <button className="continue-button" onClick={handlePhaseSummaryContinue}>
+            {reviewMode ? "Voltar à Jornada →" : "Continuar Jornada →"}
           </button>
         </div>
       </div>
-    );
+    )
   }
 
-  // -------------------------
-  // 🔹 LIÇÃO ATIVA
-  // -------------------------
   if (isLessonActive) {
-    const currentLessons = currentPhase === 1 ? lessonsFase1 : lessonsFase2;
-  
+    const currentLessons = reviewMode ? reviewQuestions : currentPhase === 1 ? lessonsFase1 : lessonsFase2
+
     return (
       <Lesson
         lessonData={getCurrentLesson()}
@@ -339,64 +404,51 @@ const Path_player: React.FC = () => {
         questionIndex={currentQuestionIndex}
         totalQuestions={currentLessons.length}
       />
-    );
+    )
   }
 
-
-  // -------------------------
-  // 🔹 INTERFACE PRINCIPAL
-  // -------------------------
   return (
     <div className="app-container">
       <Sidebar activeItem={activeNavItem} onNavigate={navigator} />
-
-      {/* Conteúdo principal */}
       <div className="main-content">
         <div className="learning-path">
           <div className="path-title">Jornada de Autômatos Finitos</div>
 
           <div className="path-nodes">
-            {/* Nó da Fase 1 */}
-            <div className="path-node completed" onClick={() => handleNodeClick(1)}>
-              <div className="node-circle">
-                <span className="node-icon">🧠</span>
-              </div>
-              <div className="node-label">Fase 1: Fundamentos</div>
-              <div className="node-subtitle">5 questões</div>
-            </div>
+            {phaseData.map((phase, index) => (
+              <React.Fragment key={phase.phase}>
+                <div
+                  className={`path-node ${currentPhase === phase.phase ? "active" : index < currentPhase - 1 ? "completed" : "upcoming"}`}
+                  onClick={() => handleNodeClick(phase.phase)}
+                >
+                  <div className="node-circle">
+                    <span className="node-icon">{phase.icon}</span>
+                  </div>
+                  <div className="node-label">{phase.title}</div>
+                </div>
 
-            <div className="path-connector"></div>
+                {index < phaseData.length - 1 && <div className="path-connector"></div>}
+              </React.Fragment>
+            ))}
 
-            {/* Nó da Fase 2 */}
-            <div className="path-node active" onClick={() => handleNodeClick(2)}>
-              <div className="node-circle">
-                <span className="node-icon">⚡</span>
-              </div>
-              <div className="node-label">Fase 2: Aplicações</div>
-              <div className="node-subtitle">5 questões</div>
-            </div>
-
-            <div className="path-connector"></div>
-
-            {/* Prática Interativa (separada) */}
             <div
               className="path-node upcoming"
               onClick={() => {
                 setSelectedTask({
                   title: "Prática: Construção de Autômato",
-                  description: "Construa seu próprio autômato finito determinístico arrastando estados e criando transições.",
+                  description:
+                    "Construa seu próprio autômato finito determinístico arrastando estados e criando transições.",
                   icon: "🎮",
-                  difficulty: "Prática",
                   xp: 25,
                   progress: 0,
                   learningPoints: [
                     "Construção de autômatos do zero",
                     "Definição de estados iniciais e finais",
                     "Criação de transições com caracteres",
-                    "Validação de autômatos construídos"
-                  ]
-                });
-                setIsTaskOpen(true);
+                    "Validação de autômatos construídos",
+                  ],
+                })
+                setIsTaskOpen(true)
               }}
             >
               <div className="node-circle">
@@ -409,24 +461,22 @@ const Path_player: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra lateral direita */}
       <div className="right-sidebar">
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">{userData ? userData.streak_count ?? 0 : 0}</span>
+            <span className="stat-number">{userData ? (userData.streak_count ?? 0) : 0}</span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
-            <span className="stat-number">{userData ? userData.diamonds ?? 0 : 0}</span>
+            <span className="stat-number">{userData ? (userData.diamonds ?? 0) : 0}</span>
           </div>
           <div className="stat-item purple">
             <span className="stat-icon">⚡</span>
-            <span className="stat-number">{userData ? userData.xp ?? 0 : 0}</span>
+            <span className="stat-number">{userData ? (userData.xp ?? 0) : 0}</span>
           </div>
         </div>
 
-        {/* Widgets e login */}
         <div className="widget">
           <div className="widget-header">
             <h3>Ações Rápidas</h3>
@@ -444,7 +494,6 @@ const Path_player: React.FC = () => {
           </div>
         </div>
 
-        {/* Widget de login se não estiver logado */}
         {!userData && (
           <div className="widget login-widget">
             <div className="widget-header">
@@ -462,7 +511,6 @@ const Path_player: React.FC = () => {
         )}
       </div>
 
-      {/* POP-UP LOGIN */}
       {showLogin && (
         <div className="modal-overlay">
           <div className="modal">
@@ -490,7 +538,6 @@ const Path_player: React.FC = () => {
         </div>
       )}
 
-      {/* POP-UP CADASTRO */}
       {showRegister && (
         <div className="modal-overlay">
           <div className="modal">
@@ -524,17 +571,12 @@ const Path_player: React.FC = () => {
         </div>
       )}
 
-      {/* Modal da Tarefa */}
       {selectedTask && (
         <Task
           isOpen={isTaskOpen}
           onClose={handleCloseTask}
           taskData={selectedTask}
-          onStartLesson={
-            selectedTask.title.includes("Prática") 
-              ? handleStartAutomatonLesson 
-              : handleStartLesson
-          }
+          onStartLesson={selectedTask.title.includes("Prática") ? handleStartAutomatonLesson : handleStartLesson}
         />
       )}
       {showAchievementsPopup && (
@@ -552,18 +594,14 @@ const Path_player: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button
-              className="confirm-btn-jorney"
-              onClick={() => setShowAchievementsPopup(false)}
-            >
+            <button className="confirm-btn-jorney" onClick={() => setShowAchievementsPopup(false)}>
               Fechar
             </button>
           </div>
         </div>
       )}
-
     </div>
-  );
-};
+  )
+}
 
-export default Path_player;
+export default Path_player
