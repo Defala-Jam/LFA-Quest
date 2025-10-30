@@ -95,19 +95,70 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   const isLastQuestion = questionIndex + 1 === totalQuestions;
 
   const validateAutomaton = (userConexoes: Array<{ de: number; para: number; caractere: string }>) => {
-    if (!lessonData.correctAutomaton) return false;
-
+    console.group("🔍 Validação do Autômato");
+    console.log("📥 Conexões do usuário recebidas:", JSON.stringify(userConexoes, null, 2));
+  
+    if (!lessonData.correctAutomaton) {
+      console.warn("⚠️ Nenhum autômato correto definido em lessonData.correctAutomaton!");
+      console.groupEnd();
+      return false;
+    }
+  
     const correctConexoes = lessonData.correctAutomaton.conexoes;
-
-    const normalize = (arr: any[]) =>
-      arr.map(c => ({ ...c, caractere: c.caractere.toLowerCase() })).sort((a, b) => {
-        if (a.de !== b.de) return a.de - b.de;
-        if (a.para !== b.para) return a.para - b.para;
-        return a.caractere.localeCompare(b.caractere);
+    console.log("📘 Conexões corretas esperadas:", JSON.stringify(correctConexoes, null, 2));
+  
+    // Função auxiliar para normalizar as conexões
+    const normalize = (arr: any[]) => {
+      console.log("🔧 Normalizando conexões:", JSON.stringify(arr, null, 2));
+      const normalized = arr
+        .map((c) => ({
+          ...c,
+          caractere: (c.caractere || "").toLowerCase().trim(),
+        }))
+        .sort((a, b) => {
+          if (a.de !== b.de) return a.de - b.de;
+          if (a.para !== b.para) return a.para - b.para;
+          return a.caractere.localeCompare(b.caractere);
+        });
+      
+      console.log("✅ Resultado da normalização:", JSON.stringify(normalized, null, 2));
+      return normalized;
+    };
+  
+    const normalizedUser = normalize(userConexoes);
+    const normalizedCorrect = normalize(correctConexoes);
+  
+    // Comparação profunda
+    const userJson = JSON.stringify(normalizedUser);
+    const correctJson = JSON.stringify(normalizedCorrect);
+  
+    console.log("🧩 JSON do usuário:", userJson);
+    console.log("🧩 JSON correto:", correctJson);
+  
+    const isEqual = userJson === correctJson;
+  
+    if (isEqual) {
+      console.log("🎉 Resultado: Autômato CORRETO!");
+    } else {
+      console.error("❌ Resultado: Autômato INCORRETO!");
+      console.log("🔍 Diferenças detectadas entre os conjuntos normalizados:");
+      const missing = normalizedCorrect.filter(
+        (c) => !normalizedUser.some((u) => u.de === c.de && u.para === c.para && u.caractere === c.caractere)
+      );
+      const extras = normalizedUser.filter(
+        (u) => !normalizedCorrect.some((c) => c.de === u.de && c.para === u.para && c.caractere === u.caractere)
+      );
+      console.table({
+        "Conexões Faltando": missing,
+        "Conexões Extras": extras,
       });
-
-    return JSON.stringify(normalize(userConexoes)) === JSON.stringify(normalize(correctConexoes));
+    }
+  
+    console.groupEnd();
+    return isEqual;
   };
+
+
 
   const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
     setUserAutomaton({ estados, conexoes });
@@ -128,6 +179,8 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
       estados: details.estadosIniciais,
       conexoes: userConnections,
     });
+
+    console.log(userConnections)
 
     const correct = validateAutomaton(details.conexoesValidas);
     setIsCorrect(correct);

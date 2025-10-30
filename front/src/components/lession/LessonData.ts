@@ -12,7 +12,6 @@ import f2q4 from "./LessonDataImages/f2q4.jpeg";
 import f3q3 from "./LessonDataImages/f3q3.jpeg";
 
 
-
 // =======================
 // 🔹 FASE 1
 // =======================
@@ -33,7 +32,8 @@ Exemplo de notação: δ(A, x) = Y, lê-se "estando no estado A, lendo x, vai pa
     "Estado Inicial A, estados de aceitação C e D\nδ(A, b) = B\nδ(B, a) = C\nδ(C, a) = D",
     "Estado Inicial A, estado de aceitação C\nδ(A, b) = B\nδ(B, a) = C\nδ(C, a) = C",
     "Estado Inicial A, estado de aceitação D\nδ(A, b) = B\nδ(B, a) = D\nδ(B, b) = C\nδ(C, a) = D",
-    "Todas as respostas acima estão corretas."
+    "Todas as respostas acima estão corretas.",
+    "É impossível converter esse autômato finito não determinístico em um autômato finito determinístico."
   ],
 
   correctAnswer: 0,
@@ -54,13 +54,13 @@ Exemplo: S → ASb significa "S deriva ASb".`,
     "{aⁿcb | n ∈ ℕ}",
     "{acbⁿ | n ∈ ℕ}",
     "{aⁿcⁿb | n ∈ ℕ}",
-    "{aⁿcbⁿ | n ∈ ℕ}"
+    "{aⁿcbⁿ | n ∈ ℕ}",
+    "Nenhuma das respostas anteriores"
   ],
 
   correctAnswer: 3,
   
   tags: ["Gramática Regular", "derivações"]
-
 };
 
 // Questão 3 – POSCOMP 2012
@@ -71,7 +71,7 @@ export const lesson_fase1_q3 = {
 
   question: "Se um AFN tem 6 estados, qual é o número máximo de estados do AFD resultante, considerando os estados inúteis?",
 
-  alternatives: ["12", "36", "64", "1024"],
+  alternatives: ["12", "36", "64", "1024", "46656"],
 
   correctAnswer: 2,
 
@@ -90,7 +90,8 @@ export const lesson_fase1_q4 = {
     "não aceita a cadeia vazia.",
     "não tem outros estados finais.",
     "é determinístico.",
-    "aceita a cadeia vazia."
+    "aceita a cadeia vazia.",
+    "é não determinístico."
   ],
 
   correctAnswer: 3,
@@ -124,7 +125,8 @@ export const lesson_fase1_q5 = {
     "defina I e II.",
     "defina III e IV.",
     "defina I, II e IV.",
-    "defina I, III e IV."
+    "defina I, III e IV.",
+    "defina II, III e IV."
   ],
 
   correctAnswer: 3,
@@ -139,7 +141,6 @@ export const lessonsFase1 = [
   lesson_fase1_q4,
   lesson_fase1_q5,
 ];
-
 
 // =======================
 // 🔹 FASE 2
@@ -159,7 +160,8 @@ export const lesson_fase2_q1 = {
     "A palavra aaa é reconhecida pelo autômato.",
     "A palavra ababa não é reconhecida pelo autômato.",
     "A palavra vazia é reconhecida pelo autômato.",
-    "A palavra aba é reconhecida pelo autômato."
+    "A palavra aba é reconhecida pelo autômato.",
+    "A palavra baba é reconhecida pelo autômato."
   ],
 
   correctAnswer: 3,
@@ -181,7 +183,8 @@ export const lesson_fase2_q2 = {
     "010000",
     "001011",
     "100110",
-    "110101"
+    "110101",
+    "111000"
   ],
 
   correctAnswer: 3,
@@ -201,7 +204,8 @@ export const lesson_fase2_q3 = {
     "corresponde à função de transição que recebe um estado ou um símbolo de entrada que sempre retorna um conjunto de estados como resultado.",
     "tem a capacidade de adivinhar algo sobre sua entrada ao testar valores.",
     "pode, para cada entrada, transitar a partir do seu estado atual em um e somente um estado.",
-    "permite zero, uma ou n transições para os estados de entrada."
+    "permite zero, uma ou n transições para os estados de entrada.",
+    "consegue estar em vários estados ao mesmo tempo."
   ],
 
   correctAnswer: 2,
@@ -223,7 +227,8 @@ export const lesson_fase2_q4 = {
     "L = {awa: w ∈ {a,b}*}",
     "L = {w ∈ {a,b}* : |w a| = 1}",
     "L = {w ∈ {a,b}* : |w a| ≥ 0}",
-    "L = {w ∈ {a,b}* : |w a| ≤ 3}"
+    "L = {w ∈ {a,b}* : |w a| ≤ 3}",
+    "L = {w ∈ {a,b}* : |w a| é par e |w b| ≤ 3}"
   ],
 
   correctAnswer: 2,
@@ -243,7 +248,8 @@ export const lesson_fase2_q5 = {
     "A gramática G é ambígua.",
     "A gramática G é uma gramática livre de contexto.",
     "A cadeia aabbb é gerada por essa gramática.",
-    "É possível encontrar uma gramática regular equivalente a G."
+    "É possível encontrar uma gramática regular equivalente a G.",
+    "A gramática G gera a cadeia nula."
   ],
 
   correctAnswer: 3,
@@ -258,7 +264,6 @@ export const lessonsFase2 = [
   lesson_fase2_q4,
   lesson_fase2_q5,
 ];
-
 
 // =======================
 // 🔹 FASE 3
@@ -640,50 +645,9 @@ Assim, chegamos a uma contradição. Logo, C não é _______ (6).`,
   tags: ["lema do bombeamento", "linguagem não regular", "bombeamento para baixo", "0i1j"]
 };
 
-// Questão 4 – Lema do Bombeamento (Conceitos Gerais)
-export const lesson_fase5_q4 = {
-  title: "Lema do Bombeamento — Conceitos e Aplicações",
-
-  explanation: `O Lema do Bombeamento estabelece condições necessárias para linguagens regulares. Se uma linguagem não satisfaz essas condições, ela não pode ser regular. O bombeamento pode ser para cima (i>1) ou para baixo (i=0).`,
-
-  question: `Sobre o Lema do Bombeamento para linguagens regulares, qual das seguintes afirmações é CORRETA?`,
-
-  alternatives: [
-    "O lema do bombeamento pode ser usado para provar que uma linguagem não é regular, mas não pode provar que uma linguagem é regular.",
-    "Se uma linguagem satisfaz o lema do bombeamento, então ela é definitivamente regular.",
-    "O comprimento de bombeamento p é sempre igual ao número de estados do menor autômato que reconhece a linguagem.",
-    "Para provar que uma linguagem não é regular, basta encontrar uma string que não possa ser bombeada para um único valor de i."
-  ],
-
-  correctAnswer: 0,
-
-  tags: ["lema do bombeamento", "propriedades", "linguagens regulares"]
-};
-
-// Questão 5 – Estratégias de Bombeamento
-export const lesson_fase5_q5 = {
-  title: "Estratégias de Aplicação do Lema do Bombeamento",
-
-  explanation: `Diferentes tipos de linguagens não regulares requerem diferentes estratégias de bombeamento. Algumas são mais facilmente contraditas bombeando para cima, outras bombeando para baixo, dependendo da propriedade que define a linguagem.`,
-
-  question: `Em relação às estratégias de aplicação do Lema do Bombeamento, qual afirmação é VERDADEIRA?`,
-
-  alternatives: [
-    "Para linguagens que envolvem relações de quantidade entre símbolos, o bombeamento para baixo (i=0) é frequentemente mais eficaz.",
-    "O bombeamento para cima (i>1) sempre leva a contradição para qualquer linguagem não regular.",
-    "A escolha da string s é irrelevante, desde que tenha comprimento maior ou igual a p.",
-    "Sempre devemos considerar apenas o caso onde y contém um único tipo de símbolo."
-  ],
-
-  correctAnswer: 0,
-
-  tags: ["lema do bombeamento", "estratégias", "bombeamento para baixo"]
-};
 
 export const lessonsFase5 = [
   lesson_fase5_q1,
   lesson_fase5_q2,
   lesson_fase5_q3,
-  lesson_fase5_q4,
-  lesson_fase5_q5,
 ];

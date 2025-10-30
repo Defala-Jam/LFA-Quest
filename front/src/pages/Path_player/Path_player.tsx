@@ -202,6 +202,22 @@ const Path_player: React.FC = () => {
         "Desafios de integração",
       ],
     },
+    {
+      phase: 5,
+      title: "Lema do Bombeamento e Linguagens Não Regulares",
+      description: "Domine o uso do Lema do Bombeamento para provar que certas linguagens não são regulares, explorando diferentes estratégias e exemplos clássicos.",
+      icon: "🧩",
+      xp: 100,
+      progress: 0,
+      questionsCount: 5,
+      learningPoints: [
+        "Entendimento formal do Lema do Bombeamento",
+        "Provas de não regularidade de linguagens como {0ⁿ1ⁿ} e {ww}",
+        "Bombeamento para cima e para baixo",
+        "Relação entre autômatos e o comprimento de bombeamento",
+        "Estratégias eficazes para aplicar o lema em provas formais"
+      ],
+    }
   ]
 
   const handleNodeClick = (phase: number) => {
@@ -242,51 +258,73 @@ const Path_player: React.FC = () => {
     }
   }
 
+
   const handleLessonComplete = async (isCorrect: boolean) => {
-    const updatedAnswers = [...phaseAnswers, isCorrect]
-    setPhaseAnswers(updatedAnswers)
-
-    if (reviewMode) {
-      const isLastQuestion = currentQuestionIndex >= reviewQuestions.length - 1
-
-      if (isLastQuestion) {
-        setIsLessonActive(false)
-        setShowPhaseSummary(true)
-      } else {
-        setCurrentQuestionIndex((prev) => prev + 1)
-      }
-      return
-    }
-
-    const lessons = [lessonsFase1, lessonsFase2, lessonsFase3, lessonsFase4, lessonsFase5]
-    const currentPhaseQuestions = lessons[currentPhase - 1]
-    const isLastQuestion = currentQuestionIndex >= currentPhaseQuestions.length - 1
-
-    if (isLastQuestion) {
-      setIsLessonActive(false)
-
-      if (!userData) return
-
+    const updatedAnswers = [...phaseAnswers, isCorrect];
+    setPhaseAnswers(updatedAnswers);
+  
+    // Detecta se estamos em uma lição de autômato
+    const isAutomatonLesson = currentLessonType === "automaton";
+  
+    // Se for automato, sempre tratamos como última questão
+    if (isAutomatonLesson) {
+      console.log("⚙️ Finalizando lição de autômato (sem próxima questão).");
+      setIsLessonActive(false);
+    
+      if (!userData) return;
+    
       try {
-        console.log("enviando dados")
-        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`)
-        const data = await res.json()
-
+        console.log("📡 Enviando dados para verificar conquistas (automaton lesson).");
+        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+        const data = await res.json();
+      
         if (data.newAchievements && data.newAchievements.length > 0) {
-          setNewAchievements(data.newAchievements)
-          setShowAchievementsPopup(true)
-          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements)
+          setNewAchievements(data.newAchievements);
+          setShowAchievementsPopup(true);
+          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
         } else {
-          console.log("Nenhuma nova conquista.")
+          console.log("Nenhuma nova conquista encontrada.");
         }
       } catch (err) {
-        console.error("Erro ao verificar conquistas:", err)
+        console.error("Erro ao verificar conquistas:", err);
+      }
+    
+      // Resetar o tipo de lição para evitar softlocks
+      setCurrentLessonType("normal");
+      return;
+    }
+  
+    // 🔸 Caso contrário, segue o fluxo normal das lições de fase
+    const currentPhaseLessons = lessons[currentPhase - 1];
+    const isLastQuestion = currentQuestionIndex >= currentPhaseLessons.length - 1;
+  
+    if (isLastQuestion) {
+      console.log("🏁 Última questão da fase alcançada!");
+      setIsLessonActive(false);
+    
+      if (!userData) return;
+    
+      try {
+        console.log("📡 Enviando dados para verificar conquistas (fase normal).");
+        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+        const data = await res.json();
+      
+        if (data.newAchievements && data.newAchievements.length > 0) {
+          setNewAchievements(data.newAchievements);
+          setShowAchievementsPopup(true);
+          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
+        } else {
+          console.log("Nenhuma nova conquista encontrada.");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar conquistas:", err);
       }
     } else {
-      console.log("só passando para a próxima")
-      setCurrentQuestionIndex((prev) => prev + 1)
+      console.log("➡️ Indo para a próxima questão.");
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
-  }
+  };
+
 
   const handlePhaseSummaryContinue = () => {
     setShowPhaseSummary(false)
@@ -393,7 +431,6 @@ const Path_player: React.FC = () => {
   }
 
   if (isLessonActive) {
-    const currentLessons = reviewMode ? reviewQuestions : currentPhase === 1 ? lessonsFase1 : lessonsFase2
 
     return (
       <Lesson
@@ -402,7 +439,7 @@ const Path_player: React.FC = () => {
         onExit={handleExitLesson}
         isAutomaton={currentLessonType === "automaton"}
         questionIndex={currentQuestionIndex}
-        totalQuestions={currentLessons.length}
+        totalQuestions={lessons[currentPhase - 1].length}
       />
     )
   }
