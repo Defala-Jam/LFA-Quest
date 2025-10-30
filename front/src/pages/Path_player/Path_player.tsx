@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { jwtDecode } from "jwt-decode"
 import { useLocation } from "react-router-dom"
+import autoimag from "../../components/lession/LessonDataImages/auto.jpeg"
 import Sidebar from "../../components/sidebar/Sidebar.tsx"
 import Task from "../../components/Task/Taks.tsx"
 import Lesson from "../../components/lession/LessonTemplate.tsx"
@@ -344,6 +345,7 @@ const Path_player: React.FC = () => {
         title: "Construção de Autômato Finito Determinístico",
         explanation: "Marque o estado inicial com → e estados finais com ⦻.",
         alternatives: [],
+        image: autoimag,
         correctAnswer: 0,
         correctAutomaton: {
           conexoes: [
