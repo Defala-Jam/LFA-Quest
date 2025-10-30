@@ -628,10 +628,10 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
     }
 
     const cancelarEdicaoConexao = () => {
-      setEditandoConexao(null)
-      setNovoCaractere("")
+    setEditandoConexao(null)
+    setNovoCaractere("")
     }
-
+    
     const removerConexao = (conexaoId: string) => {
       const conexao = conexoes.find((c) => c.id === conexaoId)
       if (conexao) {
@@ -639,54 +639,82 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
       }
     }
 
-    const handleValidar = () => {
-      const estadosIniciais = estados.filter((e) => e.isInicial)
-      const estadosFinais = estados.filter((e) => e.isFinal)
-      const conexoesValidas = conexoes.filter((c) => c.caractere.trim() !== "")
-      const conexoesInvalidas = conexoes.filter((c) => c.caractere.trim() === "")
+  const handleValidar = () => {
+    const estadosIniciais = estados.filter((e) => e.isInicial)
+    const estadosFinais = estados.filter((e) => e.isFinal)
+    const conexoesValidas = conexoes.filter((c) => c.caractere.trim() !== "")
+    const conexoesInvalidas = conexoes.filter((c) => c.caractere.trim() === "")
 
-      const mensagens: string[] = []
-      let isValid = true
+    const mensagens: string[] = []
+    let isValid = true
 
-      if (estadosIniciais.length === 0) {
-        mensagens.push("Nenhum estado inicial definido")
-        isValid = false
-      }
+    // --- Gabarito de exemplo ---
+    const gabaritoInicial = ["1"]
+    const gabaritoFinais = ["2", "3"]
 
-      if (estadosFinais.length === 0) {
-        mensagens.push("Nenhum estado final definido")
-        isValid = false
-      }
-
-      if (conexoes.length === 0) {
-        mensagens.push("Nenhuma transição criada")
-        isValid = false
-      }
-
-      if (conexoesInvalidas.length > 0) {
-        mensagens.push(`${conexoesInvalidas.length} transição(ões) sem caractere definido`)
-        isValid = false
-      }
-
-      const details: ValidationDetails = {
-        estadosIniciais,
-        estadosFinais,
-        conexoesValidas,
-        conexoesInvalidas,
-        mensagens,
-      }
-
-      const message = isValid ? "Autômato válido!" : mensagens.join(", ")
-
-      const resultado = { isValid, message, details }
-      setResultadoValidacao(resultado)
-
-      if (onValidation) {
-        onValidation(isValid, message, details)
-      }
-
-      return resultado
+    // --- Verificações básicas ---
+    if (estadosIniciais.length === 0) {
+      mensagens.push("Nenhum estado inicial definido")
+      isValid = false
     }
+
+    if (estadosFinais.length === 0) {
+      mensagens.push("Nenhum estado final definido")
+      isValid = false
+    }
+
+    if (conexoes.length === 0) {
+      mensagens.push("Nenhuma transição criada")
+      isValid = false
+    }
+
+    if (conexoesInvalidas.length > 0) {
+      mensagens.push(`${conexoesInvalidas.length} transição(ões) sem caractere definido`)
+      isValid = false
+    }
+
+    // --- 🔎 Validação específica contra o gabarito ---
+    const nomesIniciais = estadosIniciais.map((e) => e.nome)
+    const nomesFinais = estadosFinais.map((e) => e.nome)
+
+    const iniciaisCorretos = 
+      gabaritoInicial.length === nomesIniciais.length &&
+      gabaritoInicial.every((g) => nomesIniciais.includes(g))
+
+    const finaisCorretos = 
+      gabaritoFinais.length === nomesFinais.length &&
+      gabaritoFinais.every((g) => nomesFinais.includes(g))
+
+    if (!iniciaisCorretos) {
+      mensagens.push(`Estado(s) inicial(is) incorreto(s). Esperado: ${gabaritoInicial.join(", ")}`)
+      isValid = false
+    }
+
+    if (!finaisCorretos) {
+      mensagens.push(`Estado(s) final(is) incorreto(s). Esperado: ${gabaritoFinais.join(", ")}`)
+      isValid = false
+    }
+
+    // --- Resultado final ---
+    const details: ValidationDetails = {
+      estadosIniciais,
+      estadosFinais,
+      conexoesValidas,
+      conexoesInvalidas,
+      mensagens,
+    }
+
+    const message = isValid ? "✅ Autômato válido!" : mensagens.join(", ")
+
+    const resultado = { isValid, message, details }
+    setResultadoValidacao(resultado)
+
+    if (onValidation) {
+      onValidation(isValid, message, details)
+    }
+
+    return resultado
+  }
 
     useImperativeHandle(ref, () => ({
       handleValidar,
@@ -860,3 +888,21 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
   },
 )
 export default AutomatonLesson
+
+// Função auxiliar reutilizável fora do componente
+export function extractAutomatonDetails(estados: Estado[], conexoes: Conexao[]) {
+  const estadosIniciais = estados.filter((e) => e.isInicial);
+  const estadosFinais = estados.filter((e) => e.isFinal);
+
+  console.group("🔎 Análise de estrutura do autômato");
+  console.log("🚀 Estados iniciais:", estadosIniciais.map((e) => e.nome || e.id));
+  console.log("🏁 Estados finais:", estadosFinais.map((e) => e.nome || e.id));
+  console.log("🔗 Total de conexões:", conexoes.length);
+  console.groupEnd();
+
+  return {
+    estadosIniciais,
+    estadosFinais,
+    conexoes,
+  };
+}

@@ -646,8 +646,61 @@ Assim, chegamos a uma contradição. Logo, C não é _______ (6).`,
 };
 
 
+
+export const lesson_fase5_q4 = {
+  title: "FCM 2018 — Teorema do Bombeamento",
+
+  explanation: `O Teorema do Bombeamento pode ser usado para provar que uma linguagem não é regular, nunca o contrário. Ele mostra que, se uma linguagem não pode ser "bombeada", então não é regular.`,
+
+  question: "Sobre o Teorema do Bombeamento para linguagens regulares, é INCORRETO afirmar que",
+
+  alternatives: [
+    "se uma linguagem L não é regular, pode-se demonstrar que de fato L não é regular, utilizando-se o Teorema do Bombeamento.",
+    "Para toda linguagem regular L e toda palavra suficientemente grande pertencente a L, é possível afirmar que há um trecho desta palavra que pode ser repetido quantas vezes desejarmos para se obterem outras palavras de L.",
+    "O Teorema do Bombeamento pode ser utilizado para mostrar que a linguagem L, composta por palavras cujo comprimento é um número primo, não é regular.",
+    "O enunciado do Teorema do Bombeamento possui diversos quantificadores lógicos, sendo eles existenciais e universais.",
+    "O Teorema do Bombeamento pode ser utilizado para mostrar que a linguagem composta por palavras formadas por uma quantidade qualquer de 0's, seguida da mesma quantidade de 1's, não é regular."
+  ],
+
+  correctAnswer: 0,
+
+  tags: ["lema do bombeamento", "propriedades do Lema do bombeamento para de LR"]
+};
+
+// Questão 8 – POSCOMP 2022
+export const lesson_fase5_q5 = {
+  title: "POSCOMP 2022 — Lema do Bombeamento",
+
+  explanation: `O lema do bombeamento mostra que, para linguagens regulares, existe um ponto em que o autômato repete estados, formando um ciclo. Assim, a palavra pode ser dividida em partes (x, y, z) que podem ser repetidas sem sair da linguagem.`,
+
+  question: `Sobre o lema do bombeamento para as linguagens regulares, analise as assertivas a seguir:
+
+I. Se uma linguagem é Regular, então é aceita por um Autômato Finito Determinístico o qual possui um número finito e predefinido de n estados.
+II. Se o autômato reconhece uma entrada w de comprimento maior ou igual a n, obrigatoriamente o autômato assume algum estado q mais de uma vez, então existe um ciclo na função programa que passa por q.
+III. A entrada w pode ser dividida em 3 subpalavras w = xyz tal que |xy| <= n, |y| >= 1 e onde y é a parte de w reconhecida pelo ciclo na função programa.
+IV. O Lema do bombeamento não pode ser utilizado para provar que uma determinada linguagem é Não Regular.
+
+Quais estão corretas?`,
+
+  alternatives: [
+    "Apenas I e II.",
+    "Apenas III e IV.",
+    "Apenas I, II e III.",
+    "Apenas II, III e IV.",
+    "I, II, III e IV."
+  ],
+
+  correctAnswer: 2,
+
+  tags: ["lema do bombeamento", "propriedades do Lema do bombeamento para de LR"]
+};
+
+
+
 export const lessonsFase5 = [
   lesson_fase5_q1,
   lesson_fase5_q2,
   lesson_fase5_q3,
+  lesson_fase5_q4,
+  lesson_fase5_q5,
 ];
