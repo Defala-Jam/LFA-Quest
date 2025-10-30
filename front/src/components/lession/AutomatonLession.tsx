@@ -355,6 +355,7 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
       }
     }, [estados])
 
+
     // Mecânica de Conexões
     const ativarModoConectar = () => {
       setModoConectar(true)
@@ -716,6 +717,12 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
     return resultado
   }
 
+
+
+  
+
+
+
     useImperativeHandle(ref, () => ({
       handleValidar,
     }))
@@ -904,5 +911,194 @@ export function extractAutomatonDetails(estados: Estado[], conexoes: Conexao[]) 
     estadosIniciais,
     estadosFinais,
     conexoes,
+  };
+}
+
+// Função para obter todos os nós com seus estados e nós com estados especiais
+export function getNodesWithStates(estados: Estado[], conexoes: Conexao[]) {
+  // Todos os nós com seus estados completos
+  const todosOsNos = estados.map(estado => ({
+    id: estado.id,
+    nome: estado.nome,
+    posicao: estado.posicao,
+    isInicial: estado.isInicial,
+    isFinal: estado.isFinal,
+    selecionada: estado.selecionada,
+    arrastando: estado.arrastando,
+    conectada: estado.conectada,
+    // Conexões que partem deste nó
+    conexoesSaida: conexoes.filter(conexao => conexao.de === estado.id),
+    // Conexões que chegam a este nó
+    conexoesEntrada: conexoes.filter(conexao => conexao.para === estado.id)
+  }));
+
+  // Nós com estados especiais (inicial ou final)
+  const nosComEstadosEspeciais = todosOsNos.filter(no => 
+    no.isInicial || no.isFinal
+  );
+
+  // Nós iniciais
+  const nosIniciais = todosOsNos.filter(no => no.isInicial);
+
+  // Nós finais
+  const nosFinais = todosOsNos.filter(no => no.isFinal);
+
+  // Nós que são tanto inicial quanto final
+  const nosInicialEFinal = todosOsNos.filter(no => no.isInicial && no.isFinal);
+
+  // Nós com múltiplas conexões (mais de 2 conexões de saída)
+  const nosComMultiplasConexoes = todosOsNos.filter(no => 
+    no.conexoesSaida.length > 2
+  );
+
+  // Nós isolados (sem conexões)
+  const nosIsolados = todosOsNos.filter(no => 
+    no.conexoesSaida.length === 0 && no.conexoesEntrada.length === 0
+  );
+
+  return {
+    // Retorna todos os nós
+    todosOsNos,
+    
+    // Retorna apenas nós com estados especiais
+    nosComEstadosEspeciais,
+    
+    // Retorna categorias específicas
+    nosIniciais,
+    nosFinais,
+    nosInicialEFinal,
+    nosComMultiplasConexoes,
+    nosIsolados,
+    
+    // Estatísticas
+    estatisticas: {
+      totalNos: todosOsNos.length,
+      totalIniciais: nosIniciais.length,
+      totalFinais: nosFinais.length,
+      totalInicialEFinal: nosInicialEFinal.length,
+      totalMultiplasConexoes: nosComMultiplasConexoes.length,
+      totalIsolados: nosIsolados.length,
+      totalConexoes: conexoes.length
+    }
+  };
+}
+
+// Função específica para obter apenas nós com estados especiais
+export function getNosEspeciais(estados: Estado[]) {
+  return estados.filter(estado => estado.isInicial || estado.isFinal)
+    .map(estado => ({
+      id: estado.id,
+      nome: estado.nome,
+      tipo: estado.isInicial && estado.isFinal ? 'inicial-final' : 
+            estado.isInicial ? 'inicial' : 'final',
+      posicao: estado.posicao
+    }));
+}
+
+// Função para validar estrutura do autômato
+export function validarEstruturaAutomato(estados: Estado[], conexoes: Conexao[]) {
+  const nos = getNodesWithStates(estados, conexoes);
+  
+  const problemas = [];
+  
+  // Verificar se há exatamente um estado inicial
+  if (nos.nosIniciais.length === 0) {
+    problemas.push("❌ Nenhum estado inicial definido");
+  } else if (nos.nosIniciais.length > 1) {
+    problemas.push(`⚠️ Múltiplos estados iniciais: ${nos.nosIniciais.map(n => n.nome).join(', ')}`);
+  }
+  
+  // Verificar se há pelo menos um estado final
+  if (nos.nosFinais.length === 0) {
+    problemas.push("❌ Nenhum estado final definido");
+  }
+  
+  // Verificar nós isolados
+  if (nos.nosIsolados.length > 0) {
+    problemas.push(`⚠️ Nós isolados: ${nos.nosIsolados.map(n => n.nome).join(', ')}`);
+  }
+  
+  // Verificar conexões sem caractere
+  const conexoesSemCaractere = conexoes.filter(c => !c.caractere || c.caractere.trim() === '');
+  if (conexoesSemCaractere.length > 0) {
+    problemas.push(`⚠️ ${conexoesSemCaractere.length} conexão(ões) sem caractere definido`);
+  }
+  
+  return {
+    valido: problemas.length === 0,
+    problemas,
+    estatisticas: nos.estatisticas,
+    nosEspeciais: nos.nosComEstadosEspeciais
+  };
+}
+
+// Exemplo de uso:
+/*
+// Para usar em seu componente:
+const analiseNos = getNodesWithStates(estados, conexoes);
+
+console.log("📊 Todos os nós:", analiseNos.todosOsNos);
+console.log("⭐ Nós especiais:", analiseNos.nosComEstadosEspeciais);
+console.log("🚀 Nós iniciais:", analiseNos.nosIniciais);
+console.log("🏁 Nós finais:", analiseNos.nosFinais);
+console.log("📈 Estatísticas:", analiseNos.estatisticas);
+
+// Para validar:
+const validacao = validarEstruturaAutomato(estados, conexoes);
+console.log("✅ Validação:", validacao.valido ? "Válido" : "Inválido");
+console.log("📝 Problemas:", validacao.problemas);
+*/
+
+
+// Funções auxiliares para análise específica
+export function getNosPorTipo(estados: Estado[]) {
+  return {
+    iniciais: estados.filter(e => e.isInicial && !e.isFinal),
+    finais: estados.filter(e => e.isFinal && !e.isInicial),
+    inicialEFinal: estados.filter(e => e.isInicial && e.isFinal),
+    normais: estados.filter(e => !e.isInicial && !e.isFinal)
+  };
+}
+
+// Função para encontrar nós críticos (com muitas conexões)
+export function getNosCriticos(estados: Estado[], conexoes: Conexao[]) {
+  return estados.map(estado => {
+    const conexoesSaida = conexoes.filter(c => c.de === estado.id);
+    const conexoesEntrada = conexoes.filter(c => c.para === estado.id);
+    
+    return {
+      ...estado,
+      totalConexoes: conexoesSaida.length + conexoesEntrada.length,
+      conexoesSaida: conexoesSaida.length,
+      conexoesEntrada: conexoesEntrada.length,
+      // Consideramos "crítico" se tiver mais de 3 conexões totais
+      isCritico: (conexoesSaida.length + conexoesEntrada.length) > 3
+    };
+  }).filter(no => no.isCritico);
+}
+
+// Função para exportar dados do autômato
+export function exportarAutomatonData(estados: Estado[], conexoes: Conexao[]) {
+  const nosEspeciais = getNosEspeciais(estados);
+  const nosCriticos = getNosCriticos(estados, conexoes);
+  const validacao = validarEstruturaAutomato(estados, conexoes);
+  
+  return {
+    timestamp: new Date().toISOString(),
+    estados: {
+      total: estados.length,
+      especiais: nosEspeciais,
+      criticos: nosCriticos
+    },
+    conexoes: {
+      total: conexoes.length,
+      normais: conexoes.filter(c => c.tipo === 'normal'),
+      autorreflexoes: conexoes.filter(c => c.tipo === 'autorreflexao')
+    },
+    validacao: {
+      valido: validacao.valido,
+      problemas: validacao.problemas,
+      estatisticas: validacao.estatisticas
+    }
   };
 }

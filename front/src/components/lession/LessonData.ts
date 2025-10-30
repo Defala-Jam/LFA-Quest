@@ -642,7 +642,7 @@ Assim, chegamos a uma contradição. Logo, C não é _______ (6).`,
 
   correctAnswer: 0,
 
-  tags: ["lema do bombeamento", "linguagem não regular", "bombeamento para baixo", "0i1j"]
+  tags: ["lema do bombeamento", "linguagem não regular", "bombeamento para baixo"]
 };
 
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { jwtDecode } from "jwt-decode"
 import { useLocation } from "react-router-dom"
-import autoimag from "../../components/lession/LessonDataImages/auto.jpeg"
+import autoimag from "../../components/lession/LessonDataImages/automatonlixo.jpeg"
 import Sidebar from "../../components/sidebar/Sidebar.tsx"
 import Task from "../../components/Task/Taks.tsx"
 import Lesson from "../../components/lession/LessonTemplate.tsx"

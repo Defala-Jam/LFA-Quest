@@ -6,6 +6,15 @@ import AutomatonLesson, { extractAutomatonDetails } from "./AutomatonLession";
 import type { Estado, Conexao } from "./AutomatonLession";
 import axios from "axios";
 
+// Importando as funções de validação de autômato
+import { 
+  getNodesWithStates, 
+  getNosEspeciais, 
+  validarEstruturaAutomato,
+  getNosPorTipo,
+  getNosCriticos
+} from "./AutomatonLession";
+
 interface LessonData {
   title: string;
   question?: string;
@@ -20,6 +29,8 @@ interface LessonData {
       para: number;
       caractere: string;
     }>;
+    inicial?: number | string; // Agora aceita número ou string
+    finais?: (number | string)[]; // Agora aceita números ou strings
   };
   tags?: string[];
 }
@@ -29,8 +40,6 @@ interface LessonTemplateProps {
   onComplete: () => void;
   onExit: () => void;
   isAutomaton?: boolean;
-
-  // Novas props
   questionIndex: number;
   totalQuestions: number;
 }
@@ -94,297 +103,293 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
 
   const isLastQuestion = questionIndex + 1 === totalQuestions;
 
-
-
-
-
-
 // ===============================
-// 🧠 Função de validação do autômato
+// 🧠 FUNÇÃO MELHORADA DE VALIDAÇÃO DO AUTÔMATO
 // ===============================
-const validateAutomaton = (
-  userConexoes: Array<{ de: number; para: number; caractere: string }>
+const validateAutomatonEnhanced = (
+  userEstados: Estado[],
+  userConexoes: Conexao[]
 ) => {
-  console.group("🔍 Validação do Autômato");
-  console.log("📥 Conexões do usuário recebidas:", JSON.stringify(userConexoes, null, 2));
-
+  console.group("🔍 Validação Avançada do Autômato");
+  
   if (!lessonData.correctAutomaton) {
     console.warn("⚠️ Nenhum autômato correto definido em lessonData.correctAutomaton!");
     console.groupEnd();
     return false;
   }
 
-  const correctConexoes = lessonData.correctAutomaton.conexoes;
-  console.log("📘 Conexões corretas esperadas:", JSON.stringify(correctConexoes, null, 2));
-
-  // Função auxiliar para normalizar as conexões
-  const normalize = (arr: any[]) => {
-    console.log("🔧 Normalizando conexões:", JSON.stringify(arr, null, 2));
-    const normalized = arr
-      .map((c) => ({
-        ...c,
-        caractere: (c.caractere || "").toLowerCase().trim(),
-      }))
-      .sort((a, b) => {
-        if (a.de !== b.de) return a.de - b.de;
-        if (a.para !== b.para) return a.para - b.para;
-        return a.caractere.localeCompare(b.caractere);
-      });
-
-    console.log("✅ Resultado da normalização:", JSON.stringify(normalized, null, 2));
-    return normalized;
-  };
-
-  const normalizedUser = normalize(userConexoes);
-  const normalizedCorrect = normalize(correctConexoes);
-
-  // Comparação profunda
-  const userJson = JSON.stringify(normalizedUser);
-  const correctJson = JSON.stringify(normalizedCorrect);
-
-  console.log("🧩 JSON do usuário:", userJson);
-  console.log("🧩 JSON correto:", correctJson);
-
-  const isEqual = userJson === correctJson;
-
-  if (isEqual) {
-    console.log("🎉 Resultado: Autômato CORRETO!");
-  } else {
-    console.error("❌ Resultado: Autômato INCORRETO!");
-    const missing = normalizedCorrect.filter(
-      (c) =>
-        !normalizedUser.some(
-          (u) => u.de === c.de && u.para === c.para && u.caractere === c.caractere
-        )
-    );
-    const extras = normalizedUser.filter(
-      (u) =>
-        !normalizedCorrect.some(
-          (c) => c.de === u.de && c.para === u.para && c.caractere === u.caractere
-        )
-    );
-
-    console.group("📊 Diferenças detectadas");
-    console.log("🚫 Conexões faltando:", missing);
-    console.log("⚠️ Conexões extras:", extras);
-    console.groupEnd();
-  }
-
-  console.groupEnd();
-  return isEqual;
-};
-
-
-
-
-// ===============================
-// 🧩 Validação do Autômato com logs de estados
-// ===============================
-const validateAutomatonWithLogs = (
-  userConexoes: Array<{ de: number; para: number; caractere: string }>
-) => {
-  console.group("🔍 Validação do Autômato");
-  console.log("📥 Conexões do usuário recebidas:", JSON.stringify(userConexoes, null, 2));
-
-  if (!lessonData.correctAutomaton) {
-    console.warn("⚠️ Nenhum autômato correto definido em lessonData.correctAutomaton!");
-    console.groupEnd();
-    return false;
-  }
-
-  const correct = lessonData.correctAutomaton as {
-    conexoes: Array<{ de: number; para: number; caractere: string }>;
-    inicial?: number;
-    finais?: number[];
-  };
-
+  const correct = lessonData.correctAutomaton;
   const correctConexoes = correct.conexoes || [];
-  const correctInicial = correct.inicial ?? null;
-  const correctFinais = correct.finais ?? [];
+  const correctInicial = correct.inicial;
+  const correctFinais = correct.finais || [];
 
-  console.log("📘 Conexões corretas esperadas:", JSON.stringify(correctConexoes, null, 2));
-  console.log("🚀 Estado inicial esperado:", correctInicial);
-  console.log("🏁 Estados finais esperados:", correctFinais.join(", "));
-
-  // Função auxiliar para normalizar as conexões
-  const normalize = (arr: any[]) => {
-    const normalized = arr
-      .map((c) => ({
-        ...c,
-        caractere: (c.caractere || "").toLowerCase().trim(),
-      }))
-      .sort((a, b) => {
-        if (a.de !== b.de) return a.de - b.de;
-        if (a.para !== b.para) return a.para - b.para;
-        return a.caractere.localeCompare(b.caractere);
-      });
-    return normalized;
-  };
-
-  const normalizedUser = normalize(userConexoes);
-  const normalizedCorrect = normalize(correctConexoes);
-
-  const isEqual = JSON.stringify(normalizedUser) === JSON.stringify(normalizedCorrect);
-
-  // Logs extras de diagnóstico
-  console.log("🧭 Diagnóstico de nós do gabarito:");
-  console.log("➡️ Estado inicial:", correctInicial);
-  console.log("🏁 Estados finais:", correctFinais);
-
-  console.log("📊 Conexões normalizadas do usuário:", normalizedUser);
-  console.log("📊 Conexões normalizadas corretas:", normalizedCorrect);
-
-  if (isEqual) {
-    console.log("🎉 Resultado: Autômato CORRETO!");
-  } else {
-    console.error("❌ Resultado: Autômato INCORRETO!");
-    const missing = normalizedCorrect.filter(
-      (c) =>
-        !normalizedUser.some(
-          (u) => u.de === c.de && u.para === c.para && u.caractere === c.caractere
-        )
-    );
-    const extras = normalizedUser.filter(
-      (u) =>
-        !normalizedCorrect.some(
-          (c) => c.de === u.de && c.para === u.para && c.caractere === u.caractere
-        )
-    );
-    console.table({ "Conexões Faltando": missing, "Conexões Extras": extras });
-  }
-
-  console.groupEnd();
-  return isEqual;
-};
-
-
-// ===============================
-// 🔄 Atualização de estados do autômato
-// ===============================
-const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
-  setUserAutomaton({ estados, conexoes });
-};
-
-// ===============================
-// ✅ Validação completa ao enviar do AutomatonLesson
-// ===============================
-const handleAutomatonValidation = (
-  isValid: boolean,
-  message: string,
-  details: ValidationDetails
-) => {
-  console.group("🧠 handleAutomatonValidation()");
-  console.log("📋 Detalhes recebidos:", details);
-
-  const userConnections: Conexao[] = details.conexoesValidas.map((conn) => ({
-    id: `conexao-${conn.de}-${conn.para}`,
-    de: conn.de,
-    para: conn.para,
-    ativa: true,
-    direcao: `${conn.de}→${conn.para}`,
-    tipo: "normal",
-    caractere: conn.caractere,
-  }));
-
-  setUserAutomaton({
-    estados: [...details.estadosIniciais, ...details.estadosFinais],
-    conexoes: userConnections,
+  console.log("📘 Autômato correto esperado:", {
+    inicial: correctInicial,
+    finais: correctFinais,
+    conexoes: correctConexoes
   });
 
-  // Logs de estados detectados
-  console.log("🚀 Estado(s) inicial(is) detectado(s):", details.estadosIniciais);
-  console.log("🏁 Estado(s) final(is) detectado(s):", details.estadosFinais);
-  console.log("📡 Conexões montadas:", userConnections);
+  // 🎯 ANÁLISE COMPLETA DO AUTÔMATO DO USUÁRIO
+  const analiseUsuario = getNodesWithStates(userEstados, userConexoes);
+  const nosEspeciaisUsuario = getNosEspeciais(userEstados);
+  const validacaoEstrutura = validarEstruturaAutomato(userEstados, userConexoes);
+  const nosPorTipoUsuario = getNosPorTipo(userEstados);
 
-  const correct = validateAutomatonWithLogs(details.conexoesValidas);
-  setIsCorrect(correct);
-  setIsSubmitted(true);
+  console.log("📊 Análise completa do autômato do usuário:", analiseUsuario.estatisticas);
+  console.log("⭐ Nós especiais do usuário:", nosEspeciaisUsuario);
+  console.log("✅ Validação de estrutura:", validacaoEstrutura);
 
-  console.groupEnd();
-};
+  // 🔍 VALIDAÇÃO DE ESTADOS ESPECIAIS - CORREÇÃO AQUI
+  // Estados iniciais do usuário (inclui os que são inicial E final)
+  const estadosIniciaisUsuario = [
+    ...nosPorTipoUsuario.iniciais, 
+    ...nosPorTipoUsuario.inicialEFinal
+  ].map(e => e.nome);
 
-// ===============================
-// 🚀 Submissão manual de autômato
-// ===============================
-const handleAutomatonSubmit = () => {
-  if (!userAutomaton) return;
+  // Estados finais do usuário (inclui os que são final E inicial)
+  const estadosFinaisUsuario = [
+    ...nosPorTipoUsuario.finais, 
+    ...nosPorTipoUsuario.inicialEFinal
+  ].map(e => e.nome);
 
-  const conexoesSimplificadas = userAutomaton.conexoes.map((conn) => ({
-    de: conn.de,
-    para: conn.para,
-    caractere: conn.caractere,
-  }));
+  console.log("🚀 Estados iniciais do usuário (incluindo inicial+final):", estadosIniciaisUsuario);
+  console.log("🏁 Estados finais do usuário (incluindo inicial+final):", estadosFinaisUsuario);
 
-  console.group("🧩 handleAutomatonSubmit()");
-  console.log("🧱 Conexões enviadas manualmente:", conexoesSimplificadas);
+  // Normalizar para comparação (aceita número ou string)
+  const normalizarEstado = (estado: number | string | undefined): string => {
+    return estado?.toString() || "";
+  };
 
-  const correct = validateAutomatonWithLogs(conexoesSimplificadas);
-  setIsCorrect(correct);
-  setIsSubmitted(true);
+  const correctInicialStr = normalizarEstado(correctInicial);
+  const correctFinaisStr = correctFinais.map(normalizarEstado);
 
-  console.groupEnd();
-};
+  // Verificar estado inicial (deve estar presente nos iniciais do usuário)
+  const estadoInicialCorreto = correctInicialStr === "" || 
+    estadosIniciaisUsuario.includes(correctInicialStr);
 
-// ===============================
-// 🏁 Registro da lição concluída
-// ===============================
-const handleLessonComplete = async () => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  // Verificar estados finais (todos os finais corretos devem estar nos finais do usuário)
+  const estadosFinaisCorretos = correctFinaisStr.length === 0 || 
+    correctFinaisStr.every(fim => estadosFinaisUsuario.includes(fim));
 
-  try {
-    console.group("📤 handleLessonComplete()");
-    console.log("🚀 Enviando dados de finalização da lição...");
+  console.log("🎯 Verificação de estados especiais:", {
+    estadoInicialCorreto,
+    estadosFinaisCorretos,
+    esperadoInicial: correctInicialStr,
+    esperadoFinais: correctFinaisStr,
+    encontradoIniciais: estadosIniciaisUsuario,
+    encontradoFinais: estadosFinaisUsuario
+  });
 
-    const payload = {
-      user_id: user.id,
-      correct_answers: answeredQuestions.filter((q) => q.isCorrect).length,
-      total_questions: answeredQuestions.length,
-      questions: answeredQuestions.map((q) => ({
-        questionId: q.questionId,
-        isCorrect: q.isCorrect,
-        tags: q.tags || [],
-        timeTaken: q.timeTaken,
-      })),
-    };
+  // 🔗 VALIDAÇÃO DE CONEXÕES (mantém igual)
+  const normalizarConexao = (conexao: any) => ({
+    de: conexao.de.toString(),
+    para: conexao.para.toString(),
+    caractere: (conexao.caractere || "").toLowerCase().trim(),
+  });
 
-    const response = await axios.post("http://localhost:5000/api/lesson/complete", payload);
-    const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } = response.data;
-
-    const updatedUser = {
-      ...user,
-      xp: new_xp,
-      diamonds: new_diamonds,
-      streak: new_streak,
-    };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-
-    setLessonResult({
-      diamonds: diamonds_earned,
-      xp: xp_earned,
-      streak: new_streak,
+  const conexoesUsuarioNormalizadas = userConexoes
+    .map(normalizarConexao)
+    .sort((a, b) => {
+      if (a.de !== b.de) return a.de.localeCompare(b.de);
+      if (a.para !== b.para) return a.para.localeCompare(b.para);
+      return a.caractere.localeCompare(b.caractere);
     });
 
-    console.log("✅ Lição registrada com sucesso:", response.data);
-  } catch (err) {
-    console.error("❌ Erro ao registrar lição:", err);
-  } finally {
+  const conexoesCorretasNormalizadas = correctConexoes
+    .map(normalizarConexao)
+    .sort((a, b) => {
+      if (a.de !== b.de) return a.de.localeCompare(b.de);
+      if (a.para !== b.para) return a.para.localeCompare(b.para);
+      return a.caractere.localeCompare(b.caractere);
+    });
+
+  const conexoesIguais = JSON.stringify(conexoesUsuarioNormalizadas) === 
+                        JSON.stringify(conexoesCorretasNormalizadas);
+
+  console.log("🔗 Comparação de conexões:", {
+    usuario: conexoesUsuarioNormalizadas,
+    correto: conexoesCorretasNormalizadas,
+    iguais: conexoesIguais
+  });
+
+  // 🎯 RESULTADO FINAL
+  const resultadoFinal = estadoInicialCorreto && estadosFinaisCorretos && conexoesIguais;
+
+  console.log("🎊 Resultado da validação:", {
+    estadoInicialCorreto,
+    estadosFinaisCorretos,
+    conexoesIguais,
+    resultadoFinal
+  });
+
+  if (!resultadoFinal) {
+    console.group("📋 Detalhes dos erros:");
+    
+    if (!estadoInicialCorreto) {
+      console.error("❌ Estado inicial incorreto");
+      console.log("Esperado:", correctInicialStr);
+      console.log("Encontrado:", estadosIniciaisUsuario);
+      console.log("Dica: Lembre-se que um estado pode ser inicial E final ao mesmo tempo");
+    }
+
+    if (!estadosFinaisCorretos) {
+      console.error("❌ Estados finais incorretos");
+      console.log("Esperado:", correctFinaisStr);
+      console.log("Encontrado:", estadosFinaisUsuario);
+      console.log("Dica: Verifique se todos os estados finais estão marcados, incluindo os que também são iniciais");
+    }
+
+    if (!conexoesIguais) {
+      console.error("❌ Conexões incorretas");
+      
+      const conexoesFaltando = conexoesCorretasNormalizadas.filter(
+        correct => !conexoesUsuarioNormalizadas.some(
+          user => user.de === correct.de && user.para === correct.para && user.caractere === correct.caractere
+        )
+      );
+
+      const conexoesExtras = conexoesUsuarioNormalizadas.filter(
+        user => !conexoesCorretasNormalizadas.some(
+          correct => correct.de === user.de && correct.para === user.para && correct.caractere === user.caractere
+        )
+      );
+
+      console.table({ "Conexões Faltando": conexoesFaltando, "Conexões Extras": conexoesExtras });
+    }
+    
     console.groupEnd();
   }
+
+  console.groupEnd();
+  return resultadoFinal;
 };
 
+  // ===============================
+  // 🔄 Atualização de estados do autômato
+  // ===============================
+  const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {
+    setUserAutomaton({ estados, conexoes });
+    
+    // Análise em tempo real para debugging
+    const analise = getNodesWithStates(estados, conexoes);
+    console.log("🔄 Atualização de estado - Estatísticas:", analise.estatisticas);
+  };
 
+  // ===============================
+  // ✅ Validação completa ao enviar do AutomatonLesson
+  // ===============================
+  const handleAutomatonValidation = (
+    isValid: boolean,
+    message: string,
+    details: ValidationDetails
+  ) => {
+    console.group("🧠 handleAutomatonValidation()");
+    console.log("📋 Detalhes recebidos:", details);
 
+    // Reconstruir o autômato completo do usuário
+    const userConnections: Conexao[] = details.conexoesValidas.map((conn) => ({
+      id: `conexao-${conn.de}-${conn.para}`,
+      de: conn.de,
+      para: conn.para,
+      ativa: true,
+      direcao: `${conn.de}→${conn.para}`,
+      tipo: "normal",
+      caractere: conn.caractere,
+    }));
 
+    // Combinar todos os estados (iniciais, finais e normais)
+    const todosEstados = [...details.estadosIniciais, ...details.estadosFinais];
+    const estadosUnicos = todosEstados.filter((estado, index, self) => 
+      index === self.findIndex(e => e.id === estado.id)
+    );
 
+    setUserAutomaton({
+      estados: estadosUnicos,
+      conexoes: userConnections,
+    });
+
+    // Usar a validação aprimorada
+    const correct = validateAutomatonEnhanced(estadosUnicos, userConnections);
+    setIsCorrect(correct);
+    setIsSubmitted(true);
+
+    console.log("🎯 Resultado da validação:", correct ? "CORRETO" : "INCORRETO");
+    console.groupEnd();
+  };
+
+  // ===============================
+  // 🚀 Submissão manual de autômato
+  // ===============================
+  const handleAutomatonSubmit = () => {
+    if (!userAutomaton) {
+      console.warn("⚠️ Nenhum autômato para validar");
+      return;
+    }
+
+    console.group("🧩 handleAutomatonSubmit()");
+    
+    // Análise detalhada antes da validação
+    const analise = getNodesWithStates(userAutomaton.estados, userAutomaton.conexoes);
+    console.log("📊 Análise antes da validação:", analise.estatisticas);
+
+    const correct = validateAutomatonEnhanced(userAutomaton.estados, userAutomaton.conexoes);
+    setIsCorrect(correct);
+    setIsSubmitted(true);
+
+    console.log("🎯 Resultado:", correct ? "CORRETO" : "INCORRETO");
+    console.groupEnd();
+  };
+
+  // ===============================
+  // 🏁 Registro da lição concluída
+  // ===============================
+  const handleLessonComplete = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    try {
+      console.group("📤 handleLessonComplete()");
+      console.log("🚀 Enviando dados de finalização da lição...");
+
+      const payload = {
+        user_id: user.id,
+        correct_answers: answeredQuestions.filter((q) => q.isCorrect).length,
+        total_questions: answeredQuestions.length,
+        questions: answeredQuestions.map((q) => ({
+          questionId: q.questionId,
+          isCorrect: q.isCorrect,
+          tags: q.tags || [],
+          timeTaken: q.timeTaken,
+        })),
+      };
+
+      const response = await axios.post("http://localhost:5000/api/lesson/complete", payload);
+      const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } = response.data;
+
+      const updatedUser = {
+        ...user,
+        xp: new_xp,
+        diamonds: new_diamonds,
+        streak: new_streak,
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      setLessonResult({
+        diamonds: diamonds_earned,
+        xp: xp_earned,
+        streak: new_streak,
+      });
+
+      console.log("✅ Lição registrada com sucesso:", response.data);
+    } catch (err) {
+      console.error("❌ Erro ao registrar lição:", err);
+    } finally {
+      console.groupEnd();
+    }
+  };
 
   const handleAnswerSelect = (index: number) => {
     if (!isSubmitted) setSelectedAnswer(index);
   };
-
-
-
-
-
 
   const handleSubmit = () => {
     if (selectedAnswer === null) return;
@@ -408,12 +413,9 @@ const handleLessonComplete = async () => {
     const updatedAnswers = [...answeredQuestions, currentQuestion];
     setAnsweredQuestions(updatedAnswers);
 
-    if (isLastQuestion) {
-      await handleLessonComplete();
-      setShowSummary(true);
-    } else {
-      onComplete();
-    }
+    await handleLessonComplete();
+    setShowSummary(true);
+
   };
 
   if (showSummary) {
@@ -498,6 +500,12 @@ const handleLessonComplete = async () => {
             {isSubmitted && (
               <div className={`feedback ${isCorrect ? "correct-feedback" : "incorrect-feedback"}`}>
                 {isCorrect ? "🎉 Parabéns! Autômato correto!" : "💭 Autômato incorreto! Tente novamente."}
+                
+                {/* Feedback detalhado para ajudar o usuário */}
+                {!isCorrect && userAutomaton && (
+                  <div className="detailed-feedback">
+                  </div>
+                )}
               </div>
             )}
 
