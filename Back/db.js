@@ -6,6 +6,7 @@ const dbPromise = open({
   filename: "./database.db",
   driver: sqlite3.Database,
 });
+//teste
 
 (async () => {
   const db = await dbPromise;
@@ -43,6 +44,9 @@ const dbPromise = open({
   } catch (e) {}
   try {
     await db.exec(`ALTER TABLE users ADD COLUMN selected_background INTEGER DEFAULT 0;`);
+  } catch (e) {}
+    try {
+    await db.exec(`ALTER TABLE users ADD COLUMN unlocked_phases TEXT DEFAULT '["1"]';`);
   } catch (e) {}
 
   // cria tabela de compras
