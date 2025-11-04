@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import Sidebar from "../../components/sidebar/Sidebar";
-import "./leaderboard.css";
+import "./Leaderboard.css";
 
 interface DecodedToken {
   id: number;
@@ -48,7 +48,7 @@ const Leaderboard: React.FC = () => {
       const userId = decoded.id;
 
       // 🔹 Busca o usuário logado
-      fetch(`http://localhost:5000/api/users/${userId}`)
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Erro ao buscar usuário");
           return res.json();
@@ -60,7 +60,7 @@ const Leaderboard: React.FC = () => {
         .catch((err) => console.error("Erro ao carregar usuário:", err));
 
       // 🔹 Busca o ranking real do banco
-      fetch("http://localhost:5000/api/users/leaderboard/all")
+      fetch("https://backend-lfaquest.onrender.com/api/users/leaderboard/all")
         .then((res) => {
           if (!res.ok) throw new Error("Erro ao buscar ranking");
           return res.json();

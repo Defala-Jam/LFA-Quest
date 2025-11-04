@@ -3,9 +3,26 @@
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  background-color: #0f172a;
+  /* Updated background to match other pages (#1a2332 instead of #0f172a) */
+  background-color: #1a2332;
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Added styles to make sidebar extend full height */
+.statistics-container .sidebar {
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+
+/* Added styles to make right-sidebar extend full height */
+.statistics-container .right-sidebar {
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
 }
 
 /* Improved main content area with better max-width and spacing */
@@ -72,7 +89,8 @@
 }
 
 .overview-card {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  /* Simplified background to match other pages, removed gradient */
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid #334155;
   border-radius: 16px;
   padding: 1.75rem;
@@ -98,8 +116,10 @@
 
 .overview-card:hover {
   transform: translateY(-4px);
+  /* Updated hover border color to match design system */
   border-color: #475569;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .overview-card:hover::before {
@@ -208,7 +228,8 @@
 }
 
 .tag-card {
-  background: #1e293b;
+  /* Updated background to match other page cards */
+  background: rgba(255, 255, 255, 0.05);
   border: 2px solid #334155;
   border-radius: 12px;
   padding: 1.5rem;
@@ -221,11 +242,14 @@
   transform: translateY(-2px);
   border-color: #475569;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .tag-card.active {
-  background: #0f172a;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  /* Updated active state background */
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
   transform: translateY(-2px);
 }
 
@@ -282,7 +306,8 @@
 }
 
 .tag-detail-container {
-  background: #1e293b;
+  /* Updated background to match other page containers */
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid #334155;
   border-radius: 16px;
   padding: 2rem;
@@ -319,7 +344,8 @@
 }
 
 .detail-stat-card {
-  background: #0f172a;
+  /* Updated background to match card pattern */
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid #334155;
   border-radius: 12px;
   padding: 1.5rem;
@@ -333,6 +359,7 @@
 .detail-stat-card:hover {
   transform: translateY(-2px);
   border-color: #475569;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .stat-icon-wrapper {
@@ -397,7 +424,8 @@
 
 /* Improved no selection state */
 .no-selection-state {
-  background: #1e293b;
+  /* Updated background to match design system */
+  background: rgba(255, 255, 255, 0.03);
   border: 2px dashed #334155;
   border-radius: 16px;
   padding: 4rem 2rem;
@@ -425,7 +453,8 @@
 
 /* Improved suggestion section with better visual design */
 .suggestion-section {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  /* Simplified background, removed gradient */
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid #334155;
   border-radius: 16px;
   padding: 2rem;
@@ -463,7 +492,8 @@
 
 .review-btn {
   width: 100%;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  /* Simplified button background to match design system */
+  background: #10b981;
   color: #ffffff;
   border: none;
   border-radius: 12px;
@@ -480,7 +510,8 @@
 
 .review-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+  background: #059669;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
 }
 
 .btn-arrow {

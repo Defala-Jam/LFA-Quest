@@ -31,7 +31,7 @@ const Path_player: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [isLessonActive, setIsLessonActive] = useState(false)
   const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal")
-  const [newAchievements, setNewAchievements] = useState<any[]>([])
+  const [newAchievements] = useState<any[]>([])
   const [showAchievementsPopup, setShowAchievementsPopup] = useState(false)
   const [currentPhase, setCurrentPhase] = useState(1) // 1 ou 2
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0) // 0-4 para as 5 questões
@@ -76,25 +76,100 @@ const Path_player: React.FC = () => {
       const decoded: DecodedToken = jwtDecode(token)
       const userId = decoded.id
 
-      fetch(`http://localhost:5000/api/users/${userId}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Erro ao buscar usuário")
-          return res.json()
-        })
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}`)
+        .then((res) => res.json())
         .then((data) => {
-          setUserData(data)
-          console.log("✅ Dados do usuário carregados:", data)
+          const parsedUnlocked = data.unlocked_phases ? JSON.parse(data.unlocked_phases) : ["1"]
+          setUserData({ ...data, unlocked_phases: parsedUnlocked })
+          console.log("✅ Fases desbloqueadas:", parsedUnlocked)
         })
-        .catch((err) => console.error("Erro ao carregar usuário:", err))
     } catch (error) {
       console.error("Token inválido:", error)
     }
   }, [])
 
+  // 🔔 Ouvir evento global "faseConcluida" vindo do LessonTemplat
+  // 🔔 Ouvir evento global "faseConcluida" vindo do LessonTemplate
+  useEffect(() => {
+    const handleFaseConcluida = () => {
+      console.log("📢 Evento 'faseConcluida' detectado pelo Path_player!");
+      unlockNextPhase(); // ← chama a função de desbloqueio
+    };
+
+    window.addEventListener("faseConcluida", handleFaseConcluida);
+    return () => {
+      window.removeEventListener("faseConcluida", handleFaseConcluida);
+    };
+  }, []);
+
+    // 🔓 Função dedicada para desbloquear próxima fase
+  const unlockNextPhase = async () => {
+    console.log("📩 Chamando unlockNextPhase()...");
+
+    const localUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!localUser?.id) {
+      console.warn("⚠️ Usuário não encontrado no localStorage, ignorando desbloqueio.");
+      return;
+    }
+
+    try {
+      // Buscar o estado atual do usuário
+      const resUser = await fetch(`https://backend-lfaquest.onrender.com/api/users/${localUser.id}`);
+      const freshUserData = await resUser.json();
+      const currentPhases = freshUserData.unlocked_phases
+        ? JSON.parse(freshUserData.unlocked_phases)
+        : ["1"];
+
+      console.log("📘 Fases atuais no backend:", currentPhases);
+
+      const nextPhase = currentPhases.length + 1;
+      const updatedPhases = [...currentPhases];
+
+      if (!updatedPhases.includes(String(nextPhase)) && nextPhase <= 5) {
+        updatedPhases.push(String(nextPhase));
+        console.log(`🔓 Liberando nova fase: ${nextPhase}`, updatedPhases);
+
+        const res = await fetch(
+          `https://backend-lfaquest.onrender.com/api/users/${localUser.id}/unlockedPhases`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              unlocked_phases: updatedPhases, // ✅ array puro
+            }),
+          }
+        );
+        
+
+        const data = await res.json();
+        if (res.ok) {
+          console.log(`✅ Fase ${nextPhase} liberada e salva com sucesso.`, data);
+
+          // Atualiza localStorage e estado global
+          const updatedUser = { ...localUser, unlocked_phases: updatedPhases };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          setUserData((prev: any) => ({
+            ...prev,
+            unlocked_phases: updatedPhases,
+          }));
+        } else {
+          console.error("❌ Erro ao atualizar progresso:", data);
+        }
+      } else {
+        console.log("ℹ️ Nenhuma nova fase a liberar (já desbloqueada).");
+      }
+    } catch (err) {
+      console.error("❌ Falha ao liberar fase:", err);
+    }
+  };
+
+
+
+
   const handleLogin = async () => {
     setLoginError("")
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("https://backend-lfaquest.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -114,7 +189,7 @@ const Path_player: React.FC = () => {
   const handleRegister = async () => {
     setRegisterError("")
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch("https://backend-lfaquest.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -261,70 +336,105 @@ const Path_player: React.FC = () => {
 
 
   const handleLessonComplete = async (isCorrect: boolean) => {
+    console.log("handelando fim"); // 👀 debug inicial
+
     const updatedAnswers = [...phaseAnswers, isCorrect];
     setPhaseAnswers(updatedAnswers);
-  
-    // Detecta se estamos em uma lição de autômato
+
     const isAutomatonLesson = currentLessonType === "automaton";
-  
-    // Se for automato, sempre tratamos como última questão
+    console.log("é automato?", isAutomatonLesson);
+
+    // Se for automato, termina ali mesmo
     if (isAutomatonLesson) {
       console.log("⚙️ Finalizando lição de autômato (sem próxima questão).");
       setIsLessonActive(false);
-    
-      if (!userData) return;
-    
+
+      if (!userData) {
+        console.warn("🚫 Nenhum usuário logado, cancelando progressão.");
+        return;
+      }
+
       try {
         console.log("📡 Enviando dados para verificar conquistas (automaton lesson).");
-        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+        const res = await fetch(`https://backend-lfaquest.onrender.com/api/users/${userData.id}/checkAchievements`);
         const data = await res.json();
-      
-        if (data.newAchievements && data.newAchievements.length > 0) {
-          setNewAchievements(data.newAchievements);
-          setShowAchievementsPopup(true);
-          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
-        } else {
-          console.log("Nenhuma nova conquista encontrada.");
-        }
+        console.log("🔙 Resposta conquistas:", data);
       } catch (err) {
         console.error("Erro ao verificar conquistas:", err);
       }
-    
-      // Resetar o tipo de lição para evitar softlocks
+
       setCurrentLessonType("normal");
       return;
     }
-  
-    // 🔸 Caso contrário, segue o fluxo normal das lições de fase
+
     const currentPhaseLessons = lessons[currentPhase - 1];
     const isLastQuestion = currentQuestionIndex >= currentPhaseLessons.length - 1;
-  
+    console.log("é a ultima ", isLastQuestion);
+
     if (isLastQuestion) {
-      console.log("🏁 Última questão da fase alcançada!");
+      console.log("📤 handleLessonComplete()");
+      console.log("🚀 Enviando dados de finalização da lição...");
       setIsLessonActive(false);
-    
-      if (!userData) return;
-    
+
+      if (!userData) {
+        console.warn("🚫 Nenhum usuário logado — não dá pra salvar progresso.");
+        return;
+      }
+
       try {
         console.log("📡 Enviando dados para verificar conquistas (fase normal).");
-        const res = await fetch(`http://localhost:5000/api/users/${userData.id}/checkAchievements`);
+        const res = await fetch(`https://backend-lfaquest.onrender.com/api/users/${userData.id}/checkAchievements`);
         const data = await res.json();
-      
-        if (data.newAchievements && data.newAchievements.length > 0) {
-          setNewAchievements(data.newAchievements);
-          setShowAchievementsPopup(true);
-          console.log("🏅 Novas conquistas desbloqueadas:", data.newAchievements);
-        } else {
-          console.log("Nenhuma nova conquista encontrada.");
-        }
+        console.log("🔙 Resposta conquistas:", data);
       } catch (err) {
         console.error("Erro ao verificar conquistas:", err);
+      }
+
+      // 🔓 Progressão de fase
+      try {
+        const nextPhase = currentPhase + 1;
+        const alreadyUnlocked = userData.unlocked_phases || ["1"];
+        console.log("🧩 Fases já desbloqueadas:", alreadyUnlocked, "Tentando liberar:", nextPhase);
+
+        if (!alreadyUnlocked.includes(String(nextPhase)) && nextPhase <= 5) {
+          const updatedPhases = [...alreadyUnlocked, String(nextPhase)];
+          console.log(`🔓 Liberando nova fase: ${nextPhase}`, updatedPhases);
+
+          const response = await fetch(
+            `https://backend-lfaquest.onrender.com/api/users/${userData.id}/unlockedPhases`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ unlocked_phases: updatedPhases }), // ✅ envia array puro
+            }
+          );
+
+
+          const result = await response.json();
+          console.log("📬 Resposta do backend (update progress):", result);
+
+          if (response.ok) {
+            setUserData((prev: any) => ({
+              ...prev,
+              unlocked_phases: updatedPhases,
+            }));
+            console.log(`✅ Fase ${nextPhase} liberada e salva com sucesso.`);
+          } else {
+            console.error("❌ Falha ao atualizar progresso:", result);
+          }
+        } else {
+          console.log("ℹ️ Nenhuma nova fase a liberar ou já desbloqueada.");
+        }
+      } catch (err) {
+        console.error("❌ Erro ao salvar progresso de fases:", err);
       }
     } else {
       console.log("➡️ Indo para a próxima questão.");
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
+
+
 
 
   const handlePhaseSummaryContinue = () => {
@@ -454,22 +564,57 @@ const Path_player: React.FC = () => {
           <div className="path-title">Jornada de Autômatos Finitos</div>
 
           <div className="path-nodes">
-            {phaseData.map((phase, index) => (
-              <React.Fragment key={phase.phase}>
-                <div
-                  className={`path-node ${currentPhase === phase.phase ? "active" : index < currentPhase - 1 ? "completed" : "upcoming"}`}
-                  onClick={() => handleNodeClick(phase.phase)}
-                >
-                  <div className="node-circle">
-                    <span className="node-icon">{phase.icon}</span>
+            {phaseData.map((phase: any, index: number) => {
+              // ✅ Correto: aqui é um bloco de função, então posso usar const
+              const isUnlocked = userData?.unlocked_phases?.includes(String(phase.phase))
+            
+              return (
+                <React.Fragment key={phase.phase}>
+                  {/* 🔹 Divisores de módulos */}
+                  {phase.phase === 1 && (
+                    <div className="module-divider">
+                      <span>🧩 Módulo 1 — Autômatos e Gramáticas Regulares</span>
+                    </div>
+                  )}
+                  {phase.phase === 3 && (
+                    <div className="module-divider">
+                      <span>🔍 Módulo 2 — Expressões Regulares</span>
+                    </div>
+                  )}
+                  {phase.phase === 5 && (
+                    <div className="module-divider">
+                      <span>🧠 Módulo 3 — Lema do Bombeamento</span>
+                    </div>
+                  )}
+          
+                  {/* 🔸 Fase */}
+                  <div
+                    className={`path-node ${
+                      !isUnlocked
+                        ? "locked"
+                        : currentPhase === phase.phase
+                        ? "active"
+                        : "completed"
+                    }`}
+                    onClick={() => isUnlocked && handleNodeClick(phase.phase)}
+                  >
+                    <div className="node-circle">
+                      <span className="node-icon">{phase.icon}</span>
+                    </div>
+                    <div className="node-label">{phase.title}</div>
                   </div>
-                  <div className="node-label">{phase.title}</div>
-                </div>
-
-                {index < phaseData.length - 1 && <div className="path-connector"></div>}
-              </React.Fragment>
-            ))}
-
+                  
+                  {/* 🔸 Conector entre fases, exceto entre módulos */}
+                  {index < phaseData.length - 1 &&
+                    phase.phase !== 2 &&
+                    phase.phase !== 4 && <div className="path-connector"></div>}
+                </React.Fragment>
+              )
+            })}
+          
+          
+          
+            {/* 🔹 Prática final */}
             <div
               className="path-node upcoming"
               onClick={() => {
@@ -497,6 +642,8 @@ const Path_player: React.FC = () => {
               <div className="node-subtitle">Autômatos</div>
             </div>
           </div>
+
+
         </div>
       </div>
 

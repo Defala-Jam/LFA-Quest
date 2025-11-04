@@ -12,7 +12,7 @@ import {
   lessonsFase4,
   lessonsFase5,
 } from "../../components/lession/LessonData"
-import "./Statistics.css"
+import "./statistics.css"
 
 interface DecodedToken {
   id: number
@@ -56,8 +56,8 @@ const Statistics: React.FC = () => {
       const userId = decoded.id
 
       Promise.all([
-        fetch(`http://localhost:5000/api/users/${userId}`).then((r) => r.json()),
-        fetch(`http://localhost:5000/api/users/${userId}/analytics`).then((r) => r.json()),
+        fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}`).then((r) => r.json()),
+        fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}/analytics`).then((r) => r.json()),
       ])
         .then(([user, analytics]) => {
           setUserData(user)
@@ -77,35 +77,59 @@ const Statistics: React.FC = () => {
     return { level: "needs-improvement", color: "#ef4444", label: "Precisa Melhorar" }
   }
 
-  const handleReviewTopic = () => {
-    if (!analytics || !analytics.tags || analytics.tags.length === 0) {
-      alert("Nenhum dado disponível para revisão")
-      return
-    }
 
-    const sortedTags = [...analytics.tags].sort((a, b) => a.accuracy - b.accuracy)
-    const tagsToReview = sortedTags.slice(0, Math.max(2, Math.ceil(sortedTags.length * 0.3)))
-    const tagNames = tagsToReview.map((t) => t.tag)
 
-    const allLessons = [...lessonsFase1, ...lessonsFase2, ...lessonsFase3, ...lessonsFase4, ...lessonsFase5]
-
-    const reviewQuestions = allLessons.filter(
-      (lesson) => lesson.tags && lesson.tags.some((tag) => tagNames.includes(tag)),
-    )
-
-    if (reviewQuestions.length === 0) {
-      alert("Nenhuma questão encontrada para os tópicos com mais dificuldade")
-      return
-    }
-
-    navigate("/path", {
-      state: {
-        reviewMode: true,
-        reviewQuestions,
-        reviewTags: tagNames,
-      },
-    })
+const handleReviewTopic = () => {
+  if (!analytics || !analytics.tags || analytics.tags.length === 0) {
+    alert("Nenhum dado disponível para revisão")
+    return
   }
+
+  // 1️⃣ Filtra todas as tags com taxa de acerto menor ou igual a 35%
+  const lowAccuracyTags = analytics.tags.filter((t) => t.accuracy <= 0.35)
+
+  if (lowAccuracyTags.length === 0) {
+    alert("Parabéns! Nenhum tópico com taxa de acerto menor ou igual a 35%. 🎉")
+    return
+  }
+
+  // 2️⃣ Extrai o nome das tags que precisam de revisão
+  const tagNames = lowAccuracyTags.map((t) => t.tag)
+
+  // 3️⃣ Junta todas as lições de todas as fases
+  const allLessons = [
+    ...lessonsFase1,
+    ...lessonsFase2,
+    ...lessonsFase3,
+    ...lessonsFase4,
+    ...lessonsFase5,
+  ]
+
+  // 4️⃣ Filtra todas as questões que possuem essas tags
+  const reviewQuestions = allLessons.filter(
+    (lesson) => lesson.tags && lesson.tags.some((tag) => tagNames.includes(tag))
+  )
+
+  if (reviewQuestions.length === 0) {
+    alert("Nenhuma questão encontrada para os tópicos com mais dificuldade")
+    return
+  }
+
+  // 5️⃣ Limita o número de questões a 5
+  const limitedQuestions = reviewQuestions.slice(0, 5)
+
+  // 6️⃣ Inicia a lição em modo de revisão
+  navigate("/path", {
+    state: {
+      reviewMode: true,
+      reviewQuestions: limitedQuestions,
+      reviewTags: tagNames,
+    },
+  })
+}
+
+
+
 
   if (loading)
     return (

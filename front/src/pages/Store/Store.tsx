@@ -44,7 +44,7 @@ const Store: React.FC = () => {
       const userId = decoded.id;
 
       // Busca informações do usuário
-      fetch(`http://localhost:5000/api/users/${userId}`)
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Erro ao buscar usuário");
           return res.json();
@@ -57,7 +57,7 @@ const Store: React.FC = () => {
         .catch((err) => console.error("Erro ao carregar usuário:", err));
 
       // Busca compras do usuário
-      fetch(`http://localhost:5000/api/store/purchases/${userId}`)
+      fetch(`https://backend-lfaquest.onrender.com/api/store/purchases/${userId}`)
         .then((res) => res.json())
         .then((data) => {
           setPurchasedItems(data);
@@ -122,7 +122,7 @@ const Store: React.FC = () => {
 
     if (diamonds >= item.cost) {
       try {
-        const res = await fetch("http://localhost:5000/api/store/purchase", {
+        const res = await fetch("https://backend-lfaquest.onrender.com/api/store/purchase", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

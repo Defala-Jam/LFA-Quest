@@ -72,7 +72,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
       const userId = decoded.id;
 
       // perfil
-      fetch(`http://localhost:5000/api/users/${userId}`)
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}`)
         .then((res) => res.json())
         .then((data) => {
           setUserData(data);
@@ -84,13 +84,13 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
         .catch((err) => console.error("Erro ao carregar usuário:", err));
 
       // compras
-      fetch(`http://localhost:5000/api/store/purchases/${userId}`)
+      fetch(`https://backend-lfaquest.onrender.com/api/store/purchases/${userId}`)
         .then((res) => res.json())
         .then((data) => setPurchasedItems(data))
         .catch((err) => console.error("Erro ao carregar compras:", err));
 
       //conquistas
-      fetch(`http://localhost:5000/api/users/${userId}/achievements`)
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}/achievements`)
         .then((res) => res.json())
         .then((data) => {
           console.log("🏆 Conquistas carregadas:", data);
@@ -127,7 +127,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
       const decoded: DecodedToken = jwtDecode(token);
       const userId = decoded.id;
 
-      fetch(`http://localhost:5000/api/users/${userId}/preferences`, {
+      fetch(`https://backend-lfaquest.onrender.com/api/users/${userId}/preferences`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

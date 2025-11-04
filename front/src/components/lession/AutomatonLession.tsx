@@ -232,6 +232,7 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
           return estado
         }),
       )
+      console.debug(resultadoValidacao)
     }
 
     const posicionarEstados = () => {
@@ -534,6 +535,8 @@ const AutomatonLesson = forwardRef<{ handleValidar: () => any }, AutomatonLesson
       const conexoesEntre = conexoes.filter(
         (c) => (c.de === conexao.de && c.para === conexao.para) || (c.de === conexao.para && c.para === conexao.de),
       )
+
+      console.debug(index)
 
       const count = conexoesEntre.length
       const i = conexoesEntre.findIndex((c) => c.id === conexao.id)

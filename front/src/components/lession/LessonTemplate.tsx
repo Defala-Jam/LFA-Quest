@@ -12,7 +12,6 @@ import {
   getNosEspeciais, 
   validarEstruturaAutomato,
   getNosPorTipo,
-  getNosCriticos
 } from "./AutomatonLession";
 
 interface LessonData {
@@ -69,6 +68,8 @@ interface AnsweredQuestion {
   timeTaken: number;
 }
 
+
+
 const LessonTemplate: React.FC<LessonTemplateProps> = ({
   lessonData,
   onComplete,
@@ -90,6 +91,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   const [userAutomaton, setUserAutomaton] = useState<{ estados: Estado[]; conexoes: Conexao[] } | null>(null);
   const automatonLessonRef = useRef<{ handleValidar: () => any }>(null);
   const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([]);
+  const [isContinueClicked, setIsContinueClicked] = useState(false);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -99,9 +101,11 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     setIsSubmitted(false);
     setIsCorrect(null);
     setSelectedAnswer(null);
+    setIsContinueClicked(false);
+
   }, [lessonData]);
 
-  const isLastQuestion = questionIndex + 1 === totalQuestions;
+  console.debug(extractAutomatonDetails)
 
 // ===============================
 // 🧠 FUNÇÃO MELHORADA DE VALIDAÇÃO DO AUTÔMATO
@@ -285,7 +289,7 @@ const validateAutomatonEnhanced = (
   ) => {
     console.group("🧠 handleAutomatonValidation()");
     console.log("📋 Detalhes recebidos:", details);
-
+    console.debug(isValid, message)
     // Reconstruir o autômato completo do usuário
     const userConnections: Conexao[] = details.conexoesValidas.map((conn) => ({
       id: `conexao-${conn.de}-${conn.para}`,
@@ -342,49 +346,117 @@ const validateAutomatonEnhanced = (
 
   // ===============================
   // 🏁 Registro da lição concluída
-  // ===============================
+    // ===============================
   const handleLessonComplete = async () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
+    console.log("handelando fim de lição");
 
-    try {
-      console.group("📤 handleLessonComplete()");
-      console.log("🚀 Enviando dados de finalização da lição...");
 
-      const payload = {
-        user_id: user.id,
-        correct_answers: answeredQuestions.filter((q) => q.isCorrect).length,
-        total_questions: answeredQuestions.length,
-        questions: answeredQuestions.map((q) => ({
-          questionId: q.questionId,
-          isCorrect: q.isCorrect,
-          tags: q.tags || [],
-          timeTaken: q.timeTaken,
-        })),
-      };
+      try {
+        console.group("📤 handleLessonComplete()");
+        console.log("🚀 Enviando dados de finalização da lição...");
 
-      const response = await axios.post("http://localhost:5000/api/lesson/complete", payload);
-      const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } = response.data;
+        const payload = {
+          user_id: user.id,
+          correct_answers: answeredQuestions.filter((q) => q.isCorrect).length,
+          total_questions: answeredQuestions.length,
+          questions: answeredQuestions.map((q) => ({
+            questionId: q.questionId,
+            isCorrect: q.isCorrect,
+            tags: q.tags || [],
+            timeTaken: q.timeTaken,
+          })),
+        };
 
-      const updatedUser = {
-        ...user,
-        xp: new_xp,
-        diamonds: new_diamonds,
-        streak: new_streak,
-      };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+        // ✅ 1. Registrar conclusão da lição
+        const response = await axios.post(
+          "https://backend-lfaquest.onrender.com/api/lesson/complete",
+          payload
+        );
 
-      setLessonResult({
-        diamonds: diamonds_earned,
-        xp: xp_earned,
-        streak: new_streak,
-      });
+        const { diamonds_earned, xp_earned, new_xp, new_diamonds, new_streak } =
+          response.data;
 
-      console.log("✅ Lição registrada com sucesso:", response.data);
-    } catch (err) {
-      console.error("❌ Erro ao registrar lição:", err);
-    } finally {
-      console.groupEnd();
-    }
+        const updatedUser = {
+          ...user,
+          xp: new_xp,
+          diamonds: new_diamonds,
+          streak: new_streak,
+        };
+
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setLessonResult({
+          diamonds: diamonds_earned,
+          xp: xp_earned,
+          streak: new_streak,
+        });
+
+        console.log("✅ Lição registrada com sucesso:", response.data);
+
+        // 🔔 Notificar Path_player que a fase terminou
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("faseConcluida"));
+          console.log("📢 Evento 'faseConcluida' disparado!");
+          
+        }
+
+
+          // 🔓 NOVO: desbloquear próxima fase
+          // 🔓 Desbloquear próxima fase diretamente (sem depender do Path_player)
+          try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            if (user?.id) {
+              const resUser = await fetch(`https://backend-lfaquest.onrender.com/api/users/${user.id}`);
+              const freshUserData = await resUser.json();
+              const currentPhases = freshUserData.unlocked_phases
+                ? JSON.parse(freshUserData.unlocked_phases)
+                : ["1"];
+              const nextPhase = currentPhases.length + 1;
+            
+              if (!currentPhases.includes(String(nextPhase)) && nextPhase <= 5) {
+                const updatedPhases = [...currentPhases, String(nextPhase)];
+                console.log(`🔓 Liberando nova fase diretamente no LessonTemplate: ${nextPhase}`, updatedPhases);
+              
+                const res = await fetch(
+                  `https://backend-lfaquest.onrender.com/api/users/${user.id}/unlockedPhases`,
+                  {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      unlocked_phases: updatedPhases, // ✅ envia array puro
+                    }),
+                  }
+                );
+                
+              
+                const data = await res.json();
+                if (res.ok) {
+                  console.log(`✅ Fase ${nextPhase} liberada com sucesso via LessonTemplate.`, data);
+                
+                  // Atualiza localStorage
+                  const updatedUser = { ...user, unlocked_phases: updatedPhases };
+                  localStorage.setItem("user", JSON.stringify(updatedUser));
+                } else {
+                  console.error("❌ Erro ao atualizar progresso via LessonTemplate:", data);
+                }
+              } else {
+                console.log("ℹ️ Nenhuma nova fase a liberar (já desbloqueada).");
+              }
+            }
+          } catch (err) {
+            console.error("❌ Falha ao liberar fase no LessonTemplate:", err);
+          }
+          
+
+          // exibir sumário normalmente
+          setShowSummary(true);
+
+      } catch (err) {
+        console.error("❌ Erro ao registrar lição:", err);
+      } finally {
+        console.groupEnd();
+      }
+    
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -399,6 +471,9 @@ const validateAutomatonEnhanced = (
   };
 
   const handleContinue = async () => {
+    if (isContinueClicked) return;
+
+    setIsContinueClicked(true);
     const timeTaken = Math.round((Date.now() - startTime) / 1000);
 
     const currentQuestion: AnsweredQuestion = {
@@ -413,10 +488,15 @@ const validateAutomatonEnhanced = (
     const updatedAnswers = [...answeredQuestions, currentQuestion];
     setAnsweredQuestions(updatedAnswers);
 
-    await handleLessonComplete();
-    setShowSummary(true);
-
+    if (questionIndex + 1 === totalQuestions) {
+      console.log("🔥 Última questão detectada — chamando handleLessonComplete()");
+      await handleLessonComplete();
+    } else {
+      console.log("➡️ Indo para a próxima questão (Path_player controlará o fluxo)");
+      onComplete();
+    }
   };
+
 
   if (showSummary) {
     const total = answeredQuestions.length || 1;
@@ -511,12 +591,16 @@ const validateAutomatonEnhanced = (
 
             <div className="action-buttons">
               {!isSubmitted ? (
-                <button className="submit-button" onClick={handleAutomatonSubmit} disabled={!userAutomaton}>
-                  Validar Autômato
+                <button className="submit-button" onClick={handleAutomatonSubmit} disabled={selectedAnswer === null}>
+                  Confirmar Resposta
                 </button>
               ) : (
-                <button className="continue-button" onClick={handleContinue}>
-                  Continuar →
+                <button 
+                  className="continue-button" 
+                  onClick={handleContinue}
+                  disabled={isContinueClicked} // 🔒 NOVA PROP
+                >
+                  {isContinueClicked ? "Processando..." : "Continuar →"} {/* 🔄 TEXTO DINÂMICO */}
                 </button>
               )}
             </div>
@@ -559,8 +643,12 @@ const validateAutomatonEnhanced = (
                   Confirmar Resposta
                 </button>
               ) : (
-                <button className="continue-button" onClick={handleContinue}>
-                  Continuar →
+                <button 
+                  className="continue-button" 
+                  onClick={handleContinue}
+                  disabled={isContinueClicked} // 🔒 NOVA PROP
+                >
+                  {isContinueClicked ? "Processando..." : "Continuar →"} {/* 🔄 TEXTO DINÂMICO */}
                 </button>
               )}
             </div>
