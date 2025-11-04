@@ -24,10 +24,12 @@ const Statistics: React.FC = () => {
   const [activeNavItem, setActiveNavItem] = useState("more")
   const [selectedJourney, setSelectedJourney] = useState("afd-intro")
 
+  // 🔹 Dados do usuário logado (mesma lógica do PathPlayer e Leaderboard)
+  const user = JSON.parse(localStorage.getItem("user") || "null")
+
   const navigator = (item: string) => {
     setActiveNavItem(item)
     console.log(`[v0] Navigating to: ${item}`)
-    // Add your navigation logic here (e.g., routing, content switching)
   }
 
   const journeys: Journey[] = [
@@ -41,44 +43,84 @@ const Statistics: React.FC = () => {
       id: "afd-construction",
       name: "Construção de AFDs",
       progress: 45,
-      description: "Métodos para construir autômatos determinísticos a partir de expressões regulares",
+      description:
+        "Métodos para construir autômatos determinísticos a partir de expressões regulares",
     },
     {
       id: "afd-minimization",
       name: "Minimização de AFDs",
       progress: 20,
-      description: "Técnicas para simplificar autômatos mantendo a linguagem reconhecida",
+      description:
+        "Técnicas para simplificar autômatos mantendo a linguagem reconhecida",
     },
   ]
 
   const tagStats: TagStats[] = [
-    { name: "Definições e Estados", averageTime: 10.5, successRate: 85, totalQuestions: 24, color: "#4f46e5" },
-    { name: "Transições", averageTime: 12.2, successRate: 78, totalQuestions: 18, color: "#3b82f6" },
-    { name: "Linguagem Reconhecida", averageTime: 9.8, successRate: 91, totalQuestions: 32, color: "#10b981" },
-    { name: "Construção de AFD", averageTime: 14.1, successRate: 80, totalQuestions: 21, color: "#f59e0b" },
-    { name: "Minimização", averageTime: 18.3, successRate: 70, totalQuestions: 15, color: "#ef4444" },
+    {
+      name: "Definições e Estados",
+      averageTime: 10.5,
+      successRate: 85,
+      totalQuestions: 24,
+      color: "#4f46e5",
+    },
+    {
+      name: "Transições",
+      averageTime: 12.2,
+      successRate: 78,
+      totalQuestions: 18,
+      color: "#3b82f6",
+    },
+    {
+      name: "Linguagem Reconhecida",
+      averageTime: 9.8,
+      successRate: 91,
+      totalQuestions: 32,
+      color: "#10b981",
+    },
+    {
+      name: "Construção de AFD",
+      averageTime: 14.1,
+      successRate: 80,
+      totalQuestions: 21,
+      color: "#f59e0b",
+    },
+    {
+      name: "Minimização",
+      averageTime: 18.3,
+      successRate: 70,
+      totalQuestions: 15,
+      color: "#ef4444",
+    },
   ]
 
-  const currentJourney = journeys.find((j) => j.id === selectedJourney) || journeys[0]
+  const currentJourney =
+    journeys.find((j) => j.id === selectedJourney) || journeys[0]
 
   return (
     <div className="statistics-container">
+      {/* Sidebar esquerda */}
       <Sidebar activeItem={activeNavItem} onNavigate={navigator} />
 
+      {/* Conteúdo principal */}
       <div className="statistics-main">
         <div className="statistics-header">
           <h1>Estatísticas de Aprendizagem</h1>
-          <p>Acompanhe seu progresso e desempenho em Autômatos Finitos Determinísticos (AFD)</p>
+          <p>
+            Acompanhe seu progresso e desempenho em Autômatos Finitos
+            Determinísticos (AFD)
+          </p>
         </div>
 
-        {/* Journey Selection */}
+        {/* 🔹 Seção de Jornadas */}
         <div className="journey-section">
           <h2>Selecione a Jornada</h2>
           <div className="journey-cards">
             {journeys.map((journey) => (
               <div
                 key={journey.id}
-                className={`journey-card ${selectedJourney === journey.id ? "active" : ""}`}
+                className={`journey-card ${
+                  selectedJourney === journey.id ? "active" : ""
+                }`}
                 onClick={() => setSelectedJourney(journey.id)}
               >
                 <div className="journey-info">
@@ -87,7 +129,10 @@ const Statistics: React.FC = () => {
                 </div>
                 <div className="journey-progress">
                   <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${journey.progress}%` }}></div>
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${journey.progress}%` }}
+                    ></div>
                   </div>
                   <span className="progress-text">{journey.progress}%</span>
                 </div>
@@ -96,7 +141,7 @@ const Statistics: React.FC = () => {
           </div>
         </div>
 
-        {/* Current Journey Overview */}
+        {/* 🔹 Visão geral da Jornada atual */}
         <div className="journey-overview">
           <h2>Jornada Atual: {currentJourney.name}</h2>
           <div className="overview-stats">
@@ -119,14 +164,17 @@ const Statistics: React.FC = () => {
           </div>
         </div>
 
-        {/* Tag Statistics */}
+        {/* 🔹 Desempenho por Tópico */}
         <div className="tags-section">
           <h2>Desempenho por Tópico</h2>
           <div className="tags-grid">
             {tagStats.map((tag, index) => (
               <div key={index} className="tag-card">
                 <div className="tag-header">
-                  <div className="tag-indicator" style={{ backgroundColor: tag.color }}></div>
+                  <div
+                    className="tag-indicator"
+                    style={{ backgroundColor: tag.color }}
+                  ></div>
                   <h3>{tag.name}</h3>
                 </div>
                 <div className="tag-stats">
@@ -160,21 +208,21 @@ const Statistics: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Sidebar */}
+      {/* 🔹 Barra lateral direita */}
       <div className="right-sidebar">
-        {/* Stats */}
+        {/* Estatísticas do usuário logado */}
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">0</span>
+            <span className="stat-number">{user?.streak ?? 0}</span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
-            <span className="stat-number">9</span>
+            <span className="stat-number">{user?.diamonds ?? 0}</span>
           </div>
           <div className="stat-item purple">
             <span className="stat-icon">⚡</span>
-            <span className="stat-number">5</span>
+            <span className="stat-number">{user?.xp ?? 0}</span>
           </div>
         </div>
 
@@ -187,12 +235,15 @@ const Statistics: React.FC = () => {
           <div className="widget-content">
             <div className="leaderboard-message">
               <span className="lock-icon">🔒</span>
-              <p>Comece a estudar! Progrida nos conceitos e ganhe seu lugar no Ranking</p>
+              <p>
+                Continue estudando para acumular XP e subir no ranking de
+                aprendizado!
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Daily Goals */}
+        {/* Missões Diárias */}
         <div className="widget">
           <div className="widget-header">
             <h3>Missões Diárias</h3>

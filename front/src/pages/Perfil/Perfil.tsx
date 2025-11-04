@@ -20,24 +20,9 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
   const [activeItem, setActiveItem] = useState("profile")
   const [selectedAvatar, setSelectedAvatar] = useState(0)
   const [selectedBackground, setSelectedBackground] = useState(0)
-  const [userData, setUserData] = useState<any>(null)
+  const userData = JSON.parse(localStorage.getItem("user") || "null")
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  // 🔹 Buscar dados do usuário logado
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) return
-
-    try {
-      const decoded: DecodedToken = jwtDecode(token)
-      fetch(`http://localhost:5000/api/users/${decoded.id}`)
-        .then((res) => res.json())
-        .then((data) => setUserData(data))
-        .catch((err) => console.error("Erro ao carregar usuário:", err))
-    } catch (error) {
-      console.error("Token inválido:", error)
-    }
-  }, [])
 
   // 🔹 Logout
   const handleLogout = () => {
@@ -106,7 +91,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
           <div className="stat-card">
             <div className="stat-icon-large">🔥</div>
             <div className="stat-info">
-              <div className="stat-number">{userData? userData.streak_count : 0}</div>
+              <div className="stat-number">{userData?.streak ??  0}</div>
               <div className="stat-label">Sequência</div>
             </div>
           </div>
@@ -189,7 +174,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">0</span>
+            <span className="stat-number">{userData?.streak ?? 0}</span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
