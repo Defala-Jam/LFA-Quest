@@ -106,7 +106,7 @@ const Perfil: React.FC<PerfilProps> = ({ onNavigate }) => {
           <div className="stat-card">
             <div className="stat-icon-large">🔥</div>
             <div className="stat-info">
-              <div className="stat-number">0</div>
+              <div className="stat-number">{userData? userData.streak_count : 0}</div>
               <div className="stat-label">Sequência</div>
             </div>
           </div>

@@ -35,7 +35,11 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [showSummary, setShowSummary] = useState(false);
   const [answers, setAnswers] = useState<boolean[]>([]);
-  const [lessonResult, setLessonResult] = useState<{ diamonds: number; xp: number } | null>(null);
+  const [lessonResult, setLessonResult] = useState<{
+    diamonds: number;
+    xp: number;
+    streak: number;
+  } | null>(null);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -46,7 +50,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
 
   const handleAutomatonStateChange = (estados: Estado[], conexoes: Conexao[]) => {};
 
-  // 📤 Envia o resultado da lição ao backend (sem autenticação)
+  // 📤 Envia o resultado da lição ao backend e atualiza user localStorage
   const handleLessonComplete = async (correctAnswers: number, totalQuestions: number) => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -57,18 +61,29 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
         total_questions: totalQuestions,
       });
 
-      const { diamonds_earned, xp_earned, new_xp, new_diamonds } = response.data;
+      const {
+        diamonds_earned,
+        xp_earned,
+        new_xp,
+        new_diamonds,
+        new_streak,
+      } = response.data;
 
       // Atualiza localStorage com os novos totais
       const updatedUser = {
         ...user,
         xp: new_xp,
         diamonds: new_diamonds,
+        streak: new_streak,
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
       // Guarda o resultado da lição para exibir no resumo
-      setLessonResult({ diamonds: diamonds_earned, xp: xp_earned });
+      setLessonResult({
+        diamonds: diamonds_earned,
+        xp: xp_earned,
+        streak: new_streak,
+      });
     } catch (err) {
       console.error("❌ Erro ao registrar lição:", err);
     }
@@ -117,14 +132,14 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
             ✅ Acertos: <b>{correct}</b> &nbsp;&nbsp; ❌ Erros: <b>{wrong}</b>
           </p>
 
-          {/* Exibe XP e diamantes ganhos */}
-          {lessonResult !== null && (
+          {/* 🎁 Exibe recompensas da lição */}
+          {lessonResult && (
             <div className="reward-section">
-              <p className="reward-text">
-                💎 Ganhou <b>{lessonResult.diamonds}</b> diamantes
-              </p>
-              <p className="reward-text">
-                ⚡ Ganhou <b>{lessonResult.xp}</b> XP
+              <p className="reward-text">💎 +{lessonResult.diamonds} diamantes</p>
+              <p className="reward-text">⚡ +{lessonResult.xp} XP</p>
+              <p className="reward-text fire-text">
+                🔥 Ofensiva atual: <b>{lessonResult.streak}</b> dia
+                {lessonResult.streak > 1 ? "s" : ""} seguidos!
               </p>
             </div>
           )}
@@ -143,7 +158,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     );
   }
 
-  // 🧠 Tela da lição em andamento
+  // 🧠 Tela principal da lição
   return (
     <div className="lesson-container">
       <div className="lesson-left">
@@ -159,7 +174,9 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
           {lessonData.explanation ? (
             <p>{lessonData.explanation}</p>
           ) : (
-            <p style={{ color: "#64748b" }}>Nenhuma explicação disponível para esta pergunta.</p>
+            <p style={{ color: "#64748b" }}>
+              Nenhuma explicação disponível para esta pergunta.
+            </p>
           )}
         </div>
       </div>

@@ -263,7 +263,7 @@ const Path_player: React.FC = () => {
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">0</span>
+            <span className="stat-number">{user?.streak ?? 0}</span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
