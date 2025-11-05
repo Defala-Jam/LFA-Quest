@@ -1,10 +1,13 @@
-// Backend/routes/storeRoutes.js
+// routes/storeRoutes.js
 import express from "express";
-import { buyItem } from "../controllers/storeController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
+import { purchaseItem, getUserPurchases } from "../controllers/storeController.js";
 
 const router = express.Router();
 
-router.post("/buy", verifyToken, buyItem);
+// Rota para registrar compra
+router.post("/purchase", purchaseItem);
+
+// Rota para listar compras de um usuário
+router.get("/purchases/:user_id", getUserPurchases);
 
 export default router;

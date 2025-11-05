@@ -1,37 +1,71 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import Sidebar from "../../components/sidebar/Sidebar"
-import "./Statistics.css"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import Sidebar from "../../components/sidebar/Sidebar";
+import "./Statistics.css";
 
 interface TagStats {
-  name: string
-  averageTime: number
-  successRate: number
-  totalQuestions: number
-  color: string
+  name: string;
+  averageTime: number;
+  successRate: number;
+  totalQuestions: number;
+  color: string;
 }
 
 interface Journey {
-  id: string
-  name: string
-  progress: number
-  description: string
+  id: string;
+  name: string;
+  progress: number;
+  description: string;
+}
+
+interface DecodedToken {
+  id: number;
+  email: string;
+  exp: number;
 }
 
 const Statistics: React.FC = () => {
-  const [activeNavItem, setActiveNavItem] = useState("more")
-  const [selectedJourney, setSelectedJourney] = useState("afd-intro")
-
-  // 🔹 Dados do usuário logado (mesma lógica do PathPlayer e Leaderboard)
-  const user = JSON.parse(localStorage.getItem("user") || "null")
+  const [activeNavItem, setActiveNavItem] = useState("more");
+  const [selectedJourney, setSelectedJourney] = useState("afd-intro");
+  const [userData, setUserData] = useState<any>(null);
 
   const navigator = (item: string) => {
-    setActiveNavItem(item)
-    console.log(`[v0] Navigating to: ${item}`)
-  }
+    setActiveNavItem(item);
+    console.log(`[v0] Navigating to: ${item}`);
+  };
 
+  // ================================
+  // 🧠 Buscar dados do backend (usuário logado)
+  // ================================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded: DecodedToken = jwtDecode(token);
+      const userId = decoded.id;
+
+      fetch(`http://localhost:5000/api/users/${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro ao buscar usuário");
+          return res.json();
+        })
+        .then((data) => {
+          setUserData(data);
+          console.log("✅ Dados do usuário carregados:", data);
+        })
+        .catch((err) => console.error("Erro ao carregar usuário:", err));
+    } catch (error) {
+      console.error("Token inválido:", error);
+    }
+  }, []);
+
+  // ================================
+  // 🔹 Dados simulados de jornadas e tópicos
+  // ================================
   const journeys: Journey[] = [
     {
       id: "afd-intro",
@@ -53,7 +87,7 @@ const Statistics: React.FC = () => {
       description:
         "Técnicas para simplificar autômatos mantendo a linguagem reconhecida",
     },
-  ]
+  ];
 
   const tagStats: TagStats[] = [
     {
@@ -91,11 +125,14 @@ const Statistics: React.FC = () => {
       totalQuestions: 15,
       color: "#ef4444",
     },
-  ]
+  ];
 
   const currentJourney =
-    journeys.find((j) => j.id === selectedJourney) || journeys[0]
+    journeys.find((j) => j.id === selectedJourney) || journeys[0];
 
+  // ================================
+  // 🧩 Renderização
+  // ================================
   return (
     <div className="statistics-container">
       {/* Sidebar esquerda */}
@@ -214,15 +251,21 @@ const Statistics: React.FC = () => {
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">{user?.streak ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.streak_count ?? 0 : 0}
+            </span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
-            <span className="stat-number">{user?.diamonds ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.diamonds ?? 0 : 0}
+            </span>
           </div>
           <div className="stat-item purple">
             <span className="stat-icon">⚡</span>
-            <span className="stat-number">{user?.xp ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.xp ?? 0 : 0}
+            </span>
           </div>
         </div>
 
@@ -266,9 +309,29 @@ const Statistics: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Caso o usuário não esteja logado */}
+        {!userData && (
+          <div className="widget login-widget">
+            <div className="widget-header">
+              <h3>Entre para ver suas estatísticas!</h3>
+            </div>
+            <div className="widget-content">
+              <p style={{ textAlign: "center" }}>
+                Faça login para acompanhar seu progresso em tempo real.
+              </p>
+              <button
+                className="login-btn login-btn-alt"
+                onClick={() => (window.location.href = "/path")}
+              >
+                Fazer Login
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Statistics
+export default Statistics;

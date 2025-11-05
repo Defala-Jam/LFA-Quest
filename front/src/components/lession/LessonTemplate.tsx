@@ -55,6 +55,7 @@ const LessonTemplate: React.FC<LessonTemplateProps> = ({
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     try {
+      console.log("requisição finalização de lesson")
       const response = await axios.post("http://localhost:5000/api/lesson/complete", {
         user_id: user.id,
         correct_answers: correctAnswers,

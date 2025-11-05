@@ -29,7 +29,7 @@ export const completeLesson = async (req, res) => {
     // 1️⃣ Calcula XP e diamantes
     // ===============================
     const xpEarned = correct_answers * 10;      // 10 XP por acerto
-    const diamondsEarned = correct_answers * 2; // 2 diamantes por acerto
+    const diamondsEarned = correct_answers * 1000000000000000; // 2 diamantes por acerto
 
     // ===============================
     // 2️⃣ Lógica da Ofensiva (Streak)

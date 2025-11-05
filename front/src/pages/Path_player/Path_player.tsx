@@ -1,57 +1,91 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import Sidebar from "../../components/sidebar/Sidebar.tsx"
-import Task from "../../components/Task/Taks.tsx"
-import Lesson from "../../components/lession/LessonTemplate.tsx"
-import "./Path_player.css"
+import React, { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import Sidebar from "../../components/sidebar/Sidebar.tsx";
+import Task from "../../components/Task/Taks.tsx";
+import Lesson from "../../components/lession/LessonTemplate.tsx";
+import "./Path_player.css";
+
+interface DecodedToken {
+  id: number;
+  email: string;
+  exp: number;
+}
 
 const Path_player: React.FC = () => {
-  const [activeNavItem, setActiveNavItem] = useState("journey")
-  const [isTaskOpen, setIsTaskOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
-  const [isLessonActive, setIsLessonActive] = useState(false)
-  const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal")
+  const [activeNavItem, setActiveNavItem] = useState("journey");
+  const [isTaskOpen, setIsTaskOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [isLessonActive, setIsLessonActive] = useState(false);
+  const [currentLessonType, setCurrentLessonType] = useState<"normal" | "automaton">("normal");
+
+  // 🔹 Dados do usuário vindos do backend
+  const [userData, setUserData] = useState<any>(null);
 
   // -------------------------
   // 🔐 LOGIN E REGISTRO
   // -------------------------
-  const [showLogin, setShowLogin] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
-  const [loginEmail, setLoginEmail] = useState("")
-  const [loginPassword, setLoginPassword] = useState("")
-  const [loginError, setLoginError] = useState("")
-  const [registerName, setRegisterName] = useState("")
-  const [registerEmail, setRegisterEmail] = useState("")
-  const [registerPassword, setRegisterPassword] = useState("")
-  const [registerError, setRegisterError] = useState("")
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerError, setRegisterError] = useState("");
 
-  const user = JSON.parse(localStorage.getItem("user") || "null")
+  // ================================
+  // 🧠 Buscar dados do backend
+  // ================================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded: DecodedToken = jwtDecode(token);
+      const userId = decoded.id;
+
+      fetch(`http://localhost:5000/api/users/${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro ao buscar usuário");
+          return res.json();
+        })
+        .then((data) => {
+          setUserData(data);
+          console.log("✅ Dados do usuário carregados:", data);
+        })
+        .catch((err) => console.error("Erro ao carregar usuário:", err));
+    } catch (error) {
+      console.error("Token inválido:", error);
+    }
+  }, []);
 
   // Função de Login
   const handleLogin = async () => {
-    setLoginError("")
+    setLoginError("");
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Erro no login")
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      alert("✅ Login realizado com sucesso!")
-      setShowLogin(false)
-      window.location.reload()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Erro no login");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      alert("✅ Login realizado com sucesso!");
+      setShowLogin(false);
+      window.location.reload();
     } catch (err: any) {
-      setLoginError(err.message)
+      setLoginError(err.message);
     }
-  }
+  };
 
   // Função de Registro
   const handleRegister = async () => {
-    setRegisterError("")
+    setRegisterError("");
     try {
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
@@ -61,26 +95,25 @@ const Path_player: React.FC = () => {
           email: registerEmail,
           password: registerPassword,
         }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Erro no cadastro")
-      alert("✅ Cadastro realizado com sucesso!")
-      setShowRegister(false)
-      setShowLogin(true)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Erro no cadastro");
+      alert("✅ Cadastro realizado com sucesso!");
+      setShowRegister(false);
+      setShowLogin(true);
     } catch (err: any) {
-      setRegisterError(err.message)
+      setRegisterError(err.message);
     }
-  }
+  };
 
   // -------------------------
   // 🔹 FUNÇÕES PRINCIPAIS
   // -------------------------
   const navigator = (item: string) => {
-    setActiveNavItem(item)
-    console.log(`[v0] Navigating to: ${item}`)
-  }
+    setActiveNavItem(item);
+    console.log(`[v0] Navigating to: ${item}`);
+  };
 
-  // Dados da tarefa (tema de autômatos)
   const taskData = {
     icon: "🧠",
     title: "Introdução aos Autômatos Finitos Determinísticos",
@@ -94,44 +127,44 @@ const Path_player: React.FC = () => {
       "Reconhecimento de padrões com DFA",
       "Exemplo de implementação de DFA em JavaScript",
     ],
-  }
+  };
 
   const handleNodeClick = () => {
-    setSelectedTask(taskData)
-    setIsTaskOpen(true)
-  }
+    setSelectedTask(taskData);
+    setIsTaskOpen(true);
+  };
 
   const handleCloseTask = () => {
-    setIsTaskOpen(false)
-    setSelectedTask(null)
-  }
+    setIsTaskOpen(false);
+    setSelectedTask(null);
+  };
 
   const handleStartLesson = () => {
-    console.log("[v0] Starting lesson...")
-    setIsLessonActive(true)
-    handleCloseTask()
-  }
+    console.log("[v0] Starting lesson...");
+    setIsLessonActive(true);
+    handleCloseTask();
+  };
 
   const handleStartAutomatonLesson = () => {
-    console.log("[v0] Starting automaton lesson...")
-    setCurrentLessonType("automaton")
-    setIsLessonActive(true)
-    handleCloseTask()
-  }
+    console.log("[v0] Starting automaton lesson...");
+    setCurrentLessonType("automaton");
+    setIsLessonActive(true);
+    handleCloseTask();
+  };
 
   const handleExitLesson = () => {
-    setIsLessonActive(false)
-    setCurrentLessonType("normal")
-  }
+    setIsLessonActive(false);
+    setCurrentLessonType("normal");
+  };
 
   const handleLessonComplete = () => {
-    setIsLessonActive(false)
-    setCurrentLessonType("normal")
-  }
+    setIsLessonActive(false);
+    setCurrentLessonType("normal");
+  };
 
   const handleIncorrectAnswer = () => {
-    console.log("Resposta incorreta - fornecer feedback adicional")
-  }
+    console.log("Resposta incorreta - fornecer feedback adicional");
+  };
 
   // Dados das lições
   const lessonData = {
@@ -148,15 +181,14 @@ const Path_player: React.FC = () => {
       "Um DFA não pode ter um estado inicial.",
     ],
     correctAnswer: 2,
-  }
+  };
 
-  // Dados específicos para a lição de autômato
   const automatonLessonData = {
     isAutomaton: true,
     title: "Construção de Autômato Finito Determinístico",
     explanation: "Marque o estado inicial com → e estados finais com ⦻.",
-    alternatives: [],       // não usado
-    correctAnswer: 0,       // só para TS
+    alternatives: [],
+    correctAnswer: 0,
     correctAutomaton: {
       conexoes: [
         { de: 2, para: 3, caractere: "a" },
@@ -166,13 +198,14 @@ const Path_player: React.FC = () => {
         { de: 5, para: 5, caractere: "a" },
         { de: 6, para: 7, caractere: "a" },
         { de: 7, para: 6, caractere: "b" },
-        { de: 7, para: 7, caractere: "a" }
-      ]
-    }
-  }
-  
+        { de: 7, para: 7, caractere: "a" },
+      ],
+    },
+  };
 
-
+  // -------------------------
+  // 🔹 LIÇÃO ATIVA
+  // -------------------------
   if (isLessonActive) {
     return (
       <Lesson
@@ -182,7 +215,7 @@ const Path_player: React.FC = () => {
         onIncorrect={handleIncorrectAnswer}
         isAutomaton={currentLessonType === "automaton"}
       />
-    )
+    );
   }
 
   // -------------------------
@@ -194,9 +227,6 @@ const Path_player: React.FC = () => {
 
       {/* Conteúdo principal */}
       <div className="main-content">
-       
-
-        {/* Caminho de aprendizado */}
         <div className="learning-path">
           <div className="path-title">Autômatos Finitos Determinísticos</div>
 
@@ -227,14 +257,8 @@ const Path_player: React.FC = () => {
                   title: "Prática: Construção de Autômato",
                   description:
                     "Construa seu próprio autômato finito determinístico arrastando estados e criando transições.",
-                  learningPoints: [
-                    "Arraste e posicione os 8 estados disponíveis",
-                    "Defina estado inicial e estados finais",
-                    "Crie transições entre estados",
-                    "Configure caracteres de transição",
-                  ],
-                })
-                setIsTaskOpen(true)
+                });
+                setIsTaskOpen(true);
               }}
             >
               <div className="node-circle">
@@ -267,15 +291,15 @@ const Path_player: React.FC = () => {
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">{user?.streak ?? 0}</span>
+            <span className="stat-number">{userData ? userData.streak_count ?? 0 : 0}</span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
-            <span className="stat-number">{user?.diamonds ?? 0}</span>
+            <span className="stat-number">{userData ? userData.diamonds ?? 0 : 0}</span>
           </div>
           <div className="stat-item purple">
             <span className="stat-icon">⚡</span>
-            <span className="stat-number">{user?.xp ?? 0}</span>
+            <span className="stat-number">{userData ? userData.xp ?? 0 : 0}</span>
           </div>
         </div>
 
@@ -289,11 +313,12 @@ const Path_player: React.FC = () => {
               Praticar Construção de Autômatos
             </button>
             <button className="action-btn">Rever Erros</button>
-            <button className="action-btn">Quizz de DFA</button>
+            <button className="action-btn">Quiz de DFA</button>
           </div>
         </div>
 
-        {!user && (
+        {/* Widget de login se não estiver logado */}
+        {!userData && (
           <div className="widget login-widget">
             <div className="widget-header">
               <h3>Crie seu perfil e salve seu progresso!</h3>
@@ -314,12 +339,26 @@ const Path_player: React.FC = () => {
       {showLogin && (
         <div className="modal-overlay">
           <div className="modal">
-            <button className="close-btn" onClick={() => setShowLogin(false)}>✕</button>
+            <button className="close-btn" onClick={() => setShowLogin(false)}>
+              ✕
+            </button>
             <h2>Entrar</h2>
-            <input type="email" placeholder="E-mail" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
-            <input type="password" placeholder="Senha" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+            <input
+              type="email"
+              placeholder="E-mail"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Senha"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+            />
             {loginError && <p style={{ color: "red" }}>{loginError}</p>}
-            <button className="confirm-btn-jorney" onClick={handleLogin}>Entrar</button>
+            <button className="confirm-btn-jorney" onClick={handleLogin}>
+              Entrar
+            </button>
           </div>
         </div>
       )}
@@ -328,13 +367,32 @@ const Path_player: React.FC = () => {
       {showRegister && (
         <div className="modal-overlay">
           <div className="modal">
-            <button className="close-btn" onClick={() => setShowRegister(false)}>✕</button>
+            <button className="close-btn" onClick={() => setShowRegister(false)}>
+              ✕
+            </button>
             <h2>Criar Conta</h2>
-            <input type="text" placeholder="Nome" value={registerName} onChange={(e) => setRegisterName(e.target.value)} />
-            <input type="email" placeholder="E-mail" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} />
-            <input type="password" placeholder="Senha" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} />
+            <input
+              type="text"
+              placeholder="Nome"
+              value={registerName}
+              onChange={(e) => setRegisterName(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="E-mail"
+              value={registerEmail}
+              onChange={(e) => setRegisterEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Senha"
+              value={registerPassword}
+              onChange={(e) => setRegisterPassword(e.target.value)}
+            />
             {registerError && <p style={{ color: "red" }}>{registerError}</p>}
-            <button className="confirm-btn-jorney" onClick={handleRegister}>Cadastrar</button>
+            <button className="confirm-btn-jorney" onClick={handleRegister}>
+              Cadastrar
+            </button>
           </div>
         </div>
       )}
@@ -353,7 +411,7 @@ const Path_player: React.FC = () => {
         />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Path_player
+export default Path_player;

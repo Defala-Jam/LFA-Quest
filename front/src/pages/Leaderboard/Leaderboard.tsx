@@ -1,36 +1,76 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import Sidebar from "../../components/sidebar/Sidebar"
-import "./leaderboard.css"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import Sidebar from "../../components/sidebar/Sidebar";
+import "./leaderboard.css";
+
+interface DecodedToken {
+  id: number;
+  email: string;
+  exp: number;
+}
 
 const Leaderboard: React.FC = () => {
-  const [activeNavItem, setActiveNavItem] = useState("leaderboard")
+  const [activeNavItem, setActiveNavItem] = useState("leaderboard");
+  const [userData, setUserData] = useState<any>(null);
+  const [ranking, setRanking] = useState<any[]>([]);
 
-  // 🔹 Dados do usuário logado (mesmo esquema do PathPlayer)
-  const user = JSON.parse(localStorage.getItem("user") || "null")
+  const navigator = (item: string) => setActiveNavItem(item);
 
-  const navigator = (item: string) => {
-    setActiveNavItem(item)
-  }
+  // ================================
+  // 🧠 Buscar dados do backend
+  // ================================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  // 🔹 Ranking de exemplo (poderá vir da API futuramente)
-  const ranking = [
-    { id: 1, name: "Alice", xp: 120, avatar: "👩" },
-    { id: 2, name: "Bruno", xp: 95, avatar: "🧑" },
-    { id: 3, name: "Carla", xp: 80, avatar: "👩‍🦱" },
-    { id: 4, name: "Daniel", xp: 60, avatar: "👨" },
-    {
-      id: user?.id || 999,
-      name: user?.name || "Você",
-      xp: user?.xp ?? 0,
-      avatar: "🙂",
-    },
-  ]
+    try {
+      const decoded: DecodedToken = jwtDecode(token);
+      const userId = decoded.id;
 
-  // Ordena o ranking pelo XP (maior primeiro)
-  const sortedRanking = [...ranking].sort((a, b) => b.xp - a.xp)
+      // Busca o usuário logado
+      fetch(`http://localhost:5000/api/users/${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro ao buscar usuário");
+          return res.json();
+        })
+        .then((data) => {
+          setUserData(data);
+          console.log("✅ Usuário carregado:", data);
+        })
+        .catch((err) => console.error("Erro ao carregar usuário:", err));
+    } catch (error) {
+      console.error("Token inválido:", error);
+    }
+
+    // Busca ranking geral (caso tenha endpoint futuro)
+    // Por enquanto simula usuários
+    const fakeRanking = [
+      { id: 1, name: "Alice", xp: 120, avatar: "👩" },
+      { id: 5, name: "Bruno", xp: 95, avatar: "🧑" },
+      { id: 3, name: "Carla", xp: 80, avatar: "👩‍🦱" },
+      { id: 4, name: "Daniel", xp: 60, avatar: "👨" },
+    ];
+    setRanking(fakeRanking);
+  }, []);
+
+  // Adiciona o próprio usuário ao ranking (dinamicamente)
+  const completeRanking = userData
+    ? [
+        ...ranking,
+        {
+          id: userData.id,
+          name: userData.name,
+          xp: userData.xp,
+          avatar: "🙂",
+        },
+      ]
+    : ranking;
+
+  // Ordena por XP (maior primeiro)
+  const sortedRanking = [...completeRanking].sort((a, b) => b.xp - a.xp);
 
   return (
     <div className="leaderboard-layout">
@@ -49,7 +89,7 @@ const Leaderboard: React.FC = () => {
             <div
               key={userItem.id}
               className={`leaderboard-item ${
-                userItem.id === user?.id ? "me" : ""
+                userData && userItem.id === userData.id ? "me" : ""
               }`}
             >
               <span className="position">#{index + 1}</span>
@@ -67,15 +107,21 @@ const Leaderboard: React.FC = () => {
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
-            <span className="stat-number">{user?.streak ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.streak_count ?? 0 : 0}
+            </span>
           </div>
           <div className="stat-item orange">
             <span className="stat-icon">💎</span>
-            <span className="stat-number">{user?.diamonds ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.diamonds ?? 0 : 0}
+            </span>
           </div>
           <div className="stat-item purple">
             <span className="stat-icon">⚡</span>
-            <span className="stat-number">{user?.xp ?? 0}</span>
+            <span className="stat-number">
+              {userData ? userData.xp ?? 0 : 0}
+            </span>
           </div>
         </div>
 
@@ -118,9 +164,29 @@ const Leaderboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Caso o usuário não esteja logado */}
+        {!userData && (
+          <div className="widget login-widget">
+            <div className="widget-header">
+              <h3>Entre para aparecer no ranking!</h3>
+            </div>
+            <div className="widget-content">
+              <p style={{ textAlign: "center" }}>
+                Faça login para ver seu progresso e competir!
+              </p>
+              <button
+                className="login-btn login-btn-alt"
+                onClick={() => (window.location.href = "/path")}
+              >
+                Fazer Login
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Leaderboard
+export default Leaderboard;
