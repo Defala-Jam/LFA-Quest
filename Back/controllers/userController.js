@@ -32,6 +32,29 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+// 🏆 Retorna todos os usuários ordenados por XP (ranking global)
+export const getLeaderboard = async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const users = await db.all(`
+      SELECT 
+        id, 
+        name, 
+        xp, 
+        diamonds, 
+        streak_count, 
+        selected_avatar
+      FROM users
+      ORDER BY xp DESC
+    `);
+    res.json(users);
+  } catch (err) {
+    console.error("❌ Erro ao buscar leaderboard:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 // ⚡ Atualiza o XP do usuário
 export const updateUserXP = async (req, res) => {
   try {

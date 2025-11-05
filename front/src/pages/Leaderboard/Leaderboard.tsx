@@ -12,16 +12,33 @@ interface DecodedToken {
   exp: number;
 }
 
+interface User {
+  id: number;
+  name: string;
+  xp: number;
+  diamonds: number;
+  streak_count: number;
+  selected_avatar?: number;
+}
+
+const avatarPresets = [
+  { id: 0, emoji: "👤" },
+  { id: 1, emoji: "👨‍💻" },
+  { id: 2, emoji: "🎓" },
+  { id: 3, emoji: "🥷" },
+  { id: 4, emoji: "🤖" },
+];
+
 const Leaderboard: React.FC = () => {
   const [activeNavItem, setActiveNavItem] = useState("leaderboard");
-  const [userData, setUserData] = useState<any>(null);
-  const [ranking, setRanking] = useState<any[]>([]);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [ranking, setRanking] = useState<User[]>([]);
 
   const navigator = (item: string) => setActiveNavItem(item);
 
-  // ================================
-  // 🧠 Buscar dados do backend
-  // ================================
+  // ============================================
+  // 🧠 Buscar usuário logado + leaderboard real
+  // ============================================
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -30,7 +47,7 @@ const Leaderboard: React.FC = () => {
       const decoded: DecodedToken = jwtDecode(token);
       const userId = decoded.id;
 
-      // Busca o usuário logado
+      // 🔹 Busca o usuário logado
       fetch(`http://localhost:5000/api/users/${userId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Erro ao buscar usuário");
@@ -41,36 +58,27 @@ const Leaderboard: React.FC = () => {
           console.log("✅ Usuário carregado:", data);
         })
         .catch((err) => console.error("Erro ao carregar usuário:", err));
+
+      // 🔹 Busca o ranking real do banco
+      fetch("http://localhost:5000/api/users/leaderboard/all")
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro ao buscar ranking");
+          return res.json();
+        })
+        .then((data) => {
+          setRanking(data);
+          console.log("🏆 Leaderboard carregado:", data);
+        })
+        .catch((err) => console.error("Erro ao carregar leaderboard:", err));
     } catch (error) {
       console.error("Token inválido:", error);
     }
-
-    // Busca ranking geral (caso tenha endpoint futuro)
-    // Por enquanto simula usuários
-    const fakeRanking = [
-      { id: 1, name: "Alice", xp: 120, avatar: "👩" },
-      { id: 5, name: "Bruno", xp: 95, avatar: "🧑" },
-      { id: 3, name: "Carla", xp: 80, avatar: "👩‍🦱" },
-      { id: 4, name: "Daniel", xp: 60, avatar: "👨" },
-    ];
-    setRanking(fakeRanking);
   }, []);
 
-  // Adiciona o próprio usuário ao ranking (dinamicamente)
-  const completeRanking = userData
-    ? [
-        ...ranking,
-        {
-          id: userData.id,
-          name: userData.name,
-          xp: userData.xp,
-          avatar: "🙂",
-        },
-      ]
-    : ranking;
-
-  // Ordena por XP (maior primeiro)
-  const sortedRanking = [...completeRanking].sort((a, b) => b.xp - a.xp);
+  // ============================================
+  // 🏅 Ranking ordenado por XP
+  // ============================================
+  const sortedRanking = [...ranking].sort((a, b) => b.xp - a.xp);
 
   return (
     <div className="leaderboard-layout">
@@ -85,25 +93,35 @@ const Leaderboard: React.FC = () => {
         </div>
 
         <div className="leaderboard-list">
-          {sortedRanking.map((userItem, index) => (
-            <div
-              key={userItem.id}
-              className={`leaderboard-item ${
-                userData && userItem.id === userData.id ? "me" : ""
-              }`}
-            >
-              <span className="position">#{index + 1}</span>
-              <span className="avatar">{userItem.avatar}</span>
-              <span className="name">{userItem.name}</span>
-              <span className="xp">{userItem.xp} XP</span>
-            </div>
-          ))}
+          {sortedRanking.length === 0 ? (
+            <p className="empty-text">Nenhum jogador ainda!</p>
+          ) : (
+            sortedRanking.map((userItem, index) => {
+              const avatar =
+                avatarPresets.find((a) => a.id === userItem.selected_avatar)
+                  ?.emoji ?? "👤";
+              const isCurrentUser = userData && userItem.id === userData.id;
+              return (
+                <div
+                  key={userItem.id}
+                  className={`leaderboard-item ${
+                    isCurrentUser ? "me" : ""
+                  }`}
+                >
+                  <span className="position">#{index + 1}</span>
+                  <span className="avatar">{avatar}</span>
+                  <span className="name">{userItem.name}</span>
+                  <span className="xp">{userItem.xp} XP</span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
       {/* Barra lateral direita */}
       <div className="right-sidebar">
-        {/* 🔹 Estatísticas do usuário */}
+        {/* Estatísticas do usuário */}
         <div className="stats">
           <div className="stat-item green">
             <span className="stat-icon">🔥</span>
@@ -125,17 +143,16 @@ const Leaderboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Leaderboard info */}
+        {/* Widget lateral */}
         <div className="widget">
           <div className="widget-header">
             <h3>Leaderboard</h3>
-            <button className="view-button">Ver</button>
           </div>
           <div className="widget-content">
             <div className="leaderboard-message">
-              <span className="lock-icon">🔒</span>
               <p>
-                Continue aprendendo para ganhar XP e subir no ranking semanal!
+                Continue aprendendo para ganhar XP e subir no ranking
+                semanal!
               </p>
             </div>
           </div>
